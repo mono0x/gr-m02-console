@@ -1,0 +1,11 @@
+{
+  "npm.packageManager": "pnpm",
+  "[json][jsonc][markdown][typescript][yaml]": {
+    "editor.formatOnSave": true,
+    "editor.defaultFormatter": "oxc.oxc-vscode",
+    "editor.codeActionsOnSave": {
+      "source.organizeImports.oxc": "explicit",
+      "source.fixAll.oxc": "explicit"
+    }
+  }
+}

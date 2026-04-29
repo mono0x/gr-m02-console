@@ -49,4 +49,18 @@ describe("GsvAggregator", () => {
     expect(ingest(agg, gsv("GPGSV,1,1,01,12,30,090,40,1"))).not.toBeNull();
     expect(ingest(agg, gsv("GLGSV,1,1,01,77,39,313,27,1"))).not.toBeNull();
   });
+
+  it("keeps independent state per signal id within the same talker", () => {
+    const agg = new GsvAggregator();
+    // Start L1 (signalId=1) cycle of 2 messages, do not finish
+    expect(ingest(agg, gsv("GPGSV,2,1,15,22,68,140,46,194,68,042,46,1"))).toBeNull();
+    // L5Q (signalId=8) single-message cycle should NOT reset the L1 session
+    const l5 = ingest(agg, gsv("GPGSV,1,1,02,194,68,042,42,03,21,278,30,8"));
+    expect(l5?.signalId).toBe("8");
+    expect(l5?.satellites.length).toBe(2);
+    // Finish L1 cycle — should still complete with 4 satellites
+    const l1 = ingest(agg, gsv("GPGSV,2,2,15,26,67,332,47,199,60,166,40,1"));
+    expect(l1?.signalId).toBe("1");
+    expect(l1?.satellites.length).toBe(4);
+  });
 });

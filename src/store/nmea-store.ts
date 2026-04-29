@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { subscribeWithSelector } from "zustand/middleware";
-import type { SatelliteSet } from "@/nmea/aggregator";
-import type { GgaData, GsaData, GllData, GstData, RmcData, Talker, VtgData, ZdaData } from "@/nmea/types";
+import { satelliteSetKey, type SatelliteSet } from "@/nmea/aggregator";
+import type { GgaData, GsaData, GllData, GstData, RmcData, VtgData, ZdaData } from "@/nmea/types";
 
 export interface PositionState {
   lat: number | null;
@@ -50,7 +50,7 @@ interface NmeaStore {
   motion: MotionState;
   time: TimeState;
   errorStats: ErrorState;
-  satellites: Record<Talker, SatelliteSet>;
+  satellites: Record<string, SatelliteSet>;
   ingestGGA: (data: GgaData, ts: number) => void;
   ingestRMC: (data: RmcData, ts: number) => void;
   ingestVTG: (data: VtgData) => void;
@@ -246,7 +246,10 @@ export const useNmeaStore = create<NmeaStore>()(
     },
 
     ingestSatellites: (setData) => {
-      set((state) => ({ ...state, satellites: { ...state.satellites, [setData.talker]: setData } }));
+      set((state) => ({
+        ...state,
+        satellites: { ...state.satellites, [satelliteSetKey(setData.talker, setData.signalId)]: setData },
+      }));
     },
 
     reset: () =>

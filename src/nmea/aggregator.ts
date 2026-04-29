@@ -14,12 +14,17 @@ export interface SatelliteSet {
   signalId: string | null;
 }
 
+export function satelliteSetKey(talker: Talker, signalId: string | null): string {
+  return `${talker}|${signalId ?? ""}`;
+}
+
 export class GsvAggregator {
-  private pending = new Map<Talker, PendingGsv>();
+  private pending = new Map<string, PendingGsv>();
 
   ingest(talker: Talker, data: GsvData): SatelliteSet | null {
     if (data.totalMessages <= 0 || data.messageNumber <= 0) return null;
-    const existing = this.pending.get(talker);
+    const key = satelliteSetKey(talker, data.signalId);
+    const existing = this.pending.get(key);
     let session: PendingGsv;
     if (data.messageNumber === 1 || !existing || existing.totalMessages !== data.totalMessages) {
       session = {
@@ -28,11 +33,10 @@ export class GsvAggregator {
         parts: new Map(),
         signalId: data.signalId,
       };
-      this.pending.set(talker, session);
+      this.pending.set(key, session);
     } else {
       session = existing;
       session.satsInView = data.satsInView;
-      if (data.signalId) session.signalId = data.signalId;
     }
     session.parts.set(data.messageNumber, data.satellites);
     if (session.parts.size !== session.totalMessages) return null;
@@ -43,7 +47,7 @@ export class GsvAggregator {
       if (!part) return null;
       ordered.push(...part);
     }
-    this.pending.delete(talker);
+    this.pending.delete(key);
     return { talker, satsInView: session.satsInView, satellites: ordered, signalId: session.signalId };
   }
 

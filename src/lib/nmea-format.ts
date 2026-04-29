@@ -41,6 +41,23 @@ export const TALKER_LABEL: Record<string, string> = {
   BD: "BeiDou (legacy)",
 };
 
+// Per docs/GR-M02Manual.md: signal IDs differ per constellation.
+// 1: GPS L1 C/A, GLONASS L1, GALILEO E5a, BEIDOU B1I, NavIC L5
+// 4: BEIDOU B2a; 7: GALILEO E1-BC; 8: GPS L5Q (and QZSS L5Q)
+const SIGNAL_LABEL: Record<string, Record<string, string>> = {
+  GP: { "1": "L1 C/A", "8": "L5Q" },
+  GL: { "1": "L1" },
+  GA: { "1": "E5a", "7": "E1-BC" },
+  GB: { "1": "B1I", "4": "B2a" },
+  GI: { "1": "L5" },
+  QZ: { "1": "L1 C/A", "8": "L5Q" },
+};
+
+export function signalLabel(talker: string, signalId: string | null): string | null {
+  if (!signalId) return null;
+  return SIGNAL_LABEL[talker]?.[signalId] ?? `Signal ${signalId}`;
+}
+
 export function knotsToMps(knots: number | null): number | null {
   if (knots === null) return null;
   return knots * 0.5144444444;

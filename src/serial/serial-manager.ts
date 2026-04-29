@@ -1,5 +1,6 @@
-import { createLineStream } from "./line-stream";
 import type { ConnectionState, LineDirection, LineEvent, SerialPortFactory, SerialPortLike } from "./types";
+
+const LINE_SPLIT = /\r\n|\n|\r/;
 
 export type SerialManagerListener = (event: LineEvent) => void;
 export type StateListener = (state: ConnectionState, error?: string | null) => void;
@@ -128,24 +129,28 @@ export class SerialManager {
     if (!port?.readable) return;
     const abort = new AbortController();
     this.readAbort = abort;
-    const decoder = new TextDecoderStream("utf-8", { fatal: false });
-    const lineStream = createLineStream();
-    const piped = (port.readable as ReadableStream<Uint8Array>)
-      .pipeThrough(decoder as unknown as ReadableWritablePair<string, Uint8Array>)
-      .pipeThrough(lineStream);
-    const reader = piped.getReader();
+    const reader = port.readable.getReader();
     abort.signal.addEventListener("abort", () => {
-      reader.cancel().catch(() => {
-        // ignore cancellation errors
-      });
+      reader.cancel().catch(() => {});
     });
+    const decoder = new TextDecoder("utf-8", { fatal: false });
+    let buffer = "";
     this.readerLoop = (async () => {
       try {
-        while (!abort.signal.aborted) {
+        while (true) {
           const { value, done } = await reader.read();
           if (done) break;
-          if (value) this.emitLine({ text: value, ts: Date.now(), dir: "rx" });
+          buffer += decoder.decode(value, { stream: true });
+          const parts = buffer.split(LINE_SPLIT);
+          buffer = parts.pop() ?? "";
+          if (parts.length === 0) continue;
+          const ts = Date.now();
+          for (const line of parts) {
+            if (line.length > 0) this.emitLine({ text: line, ts, dir: "rx" });
+          }
         }
+        const tail = buffer + decoder.decode();
+        if (tail.length > 0) this.emitLine({ text: tail, ts: Date.now(), dir: "rx" });
       } catch (err) {
         if (!abort.signal.aborted) {
           const message = err instanceof Error ? err.message : String(err);
@@ -154,9 +159,7 @@ export class SerialManager {
       } finally {
         try {
           reader.releaseLock();
-        } catch {
-          // ignore
-        }
+        } catch {}
       }
     })();
   }

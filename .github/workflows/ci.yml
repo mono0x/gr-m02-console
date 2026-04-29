@@ -1,0 +1,65 @@
+name: CI
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: ./.github/actions/setup-mise
+      - uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
+        with:
+          path: |
+            ~/.local/share/pnpm/store
+          key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-
+      - uses: SocketDev/action@2d3f25590c6ed6ba11a9a14c064d962a3a04698f # v1.3.1
+        with:
+          mode: firewall-free
+      - run: |
+          sfw pnpm install --frozen-lockfile
+      - run: |
+          sfw pnpm exec playwright install --with-deps chromium
+      - run: |
+          pnpm run lint
+      - run: |
+          pnpm run test
+      - run: |
+          pnpm run build
+      - run: |
+          pnpm run test:e2e
+
+  deploy:
+    needs:
+      - test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: ./.github/actions/setup-mise
+      - uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
+        with:
+          path: |
+            ~/.local/share/pnpm/store
+          key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-
+      - uses: SocketDev/action@2d3f25590c6ed6ba11a9a14c064d962a3a04698f # v1.3.1
+        with:
+          mode: firewall-free
+      - run: |
+          sfw pnpm install --frozen-lockfile
+      - run: |
+          pnpm run build
+      - run: |
+          pnpm exec wrangler deploy
+        env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}

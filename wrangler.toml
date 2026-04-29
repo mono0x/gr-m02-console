@@ -1,0 +1,10 @@
+name = "gr-m02-console"
+compatibility_date = "2025-04-01"
+
+workers_dev = false
+preview_urls = false
+
+send_metrics = false
+
+[assets]
+directory = "dist"

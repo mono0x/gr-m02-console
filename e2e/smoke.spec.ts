@@ -12,8 +12,8 @@ test("renders the main shell with all tabs", async ({ page }) => {
 test("PAIR Console preview reflects argument changes", async ({ page }) => {
   await page.goto("/");
   await page.getByRole("tab", { name: "PAIR Console" }).click();
-  // Default selected command is the first PAIR_COMMANDS entry (Hot Start, ack-only, no args).
-  await expect(page.getByText("$PAIR004*3E").first()).toBeVisible();
+  // Default selected command is the first PAIR_COMMANDS entry (Restart GNSS, ack-only, no args).
+  await expect(page.getByText("$PAIR002*38").first()).toBeVisible();
 });
 
 test("Settings view lists primary controls", async ({ page }) => {

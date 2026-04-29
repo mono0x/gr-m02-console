@@ -94,14 +94,38 @@ export function SettingsView() {
 
   async function saveNvram() {
     if (!isConnected) return;
-    const ok = window.confirm("PAIR513 で現在の設定を NVRAM に保存します。続けますか?");
+    const ok = window.confirm(
+      "PAIR003 で GNSS を停止 → PAIR513 で NVRAM へ保存 → PAIR002 で再開 します。続けますか?",
+    );
     if (!ok) return;
+
     try {
-      await sendPairCommand({ cid: "513" });
-      toast.success("NVRAM へ保存しました");
+      await sendPairCommand({ cid: "003" });
     } catch (err) {
       const message = err instanceof PairError ? `${err.kind}: ${err.message}` : String(err);
+      toast.error("GNSS 停止に失敗しました", { description: message });
+      return;
+    }
+
+    let saveError: unknown;
+    try {
+      await sendPairCommand({ cid: "513" });
+    } catch (err) {
+      saveError = err;
+    }
+
+    try {
+      await sendPairCommand({ cid: "002" });
+    } catch (err) {
+      const message = err instanceof PairError ? `${err.kind}: ${err.message}` : String(err);
+      toast.error("GNSS 再開に失敗しました", { description: message });
+    }
+
+    if (saveError) {
+      const message = saveError instanceof PairError ? `${saveError.kind}: ${saveError.message}` : String(saveError);
       toast.error("NVRAM 保存に失敗しました", { description: message });
+    } else {
+      toast.success("NVRAM へ保存しました");
     }
   }
 

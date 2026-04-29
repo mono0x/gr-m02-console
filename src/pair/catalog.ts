@@ -13,6 +13,22 @@ const NMEA_TYPE_OPTIONS = [
 
 export const PAIR_COMMANDS: PairCommandSpec[] = [
   {
+    cid: "002",
+    name: "Restart GNSS",
+    category: "Restart",
+    description: "停止していた GNSS 測位を再開",
+    args: [],
+    resultKind: "ack-only",
+  },
+  {
+    cid: "003",
+    name: "Stop GNSS",
+    category: "Restart",
+    description: "GNSS 測位を一時停止 (NMEA 出力が止まる)",
+    args: [],
+    resultKind: "ack-only",
+  },
+  {
     cid: "004",
     name: "Hot Start",
     category: "Restart",

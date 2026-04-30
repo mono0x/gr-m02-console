@@ -1,8 +1,8 @@
 allowBuilds:
-  esbuild: true
-  msw: true
-  sharp: true
-  workerd: true
+  esbuild: false
+  msw: false
+  sharp: false
+  workerd: false
 
 minimumReleaseAgeExclude: []
 

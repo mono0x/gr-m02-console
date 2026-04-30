@@ -1,7 +1,10 @@
-minimumReleaseAgeExclude: []
-
 allowBuilds:
+  esbuild: true
   msw: true
+  sharp: true
+  workerd: true
+
+minimumReleaseAgeExclude: []
 
 trustPolicy: no-downgrade
 trustPolicyExclude:

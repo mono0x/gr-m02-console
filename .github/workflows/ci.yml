@@ -24,7 +24,7 @@ jobs:
         with:
           mode: firewall-free
       - run: |
-          sfw pnpm install --frozen-lockfile
+          sfw pnpm ci
       - run: |
           sfw pnpm exec playwright install --with-deps chromium
       - run: |
@@ -55,7 +55,7 @@ jobs:
         with:
           mode: firewall-free
       - run: |
-          sfw pnpm install --frozen-lockfile
+          sfw pnpm ci
       - run: |
           pnpm run build
       - run: |

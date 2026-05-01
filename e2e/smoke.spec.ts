@@ -30,3 +30,12 @@ test("Raw log view is empty by default", async ({ page }) => {
   await expect(page.getByRole("button", { name: "一時停止" })).toBeVisible();
   await expect(page.getByRole("button", { name: "クリア" })).toBeVisible();
 });
+
+test("served index.html declares SRI on every script and stylesheet", async ({ request }) => {
+  const html = await (await request.get("/")).text();
+  const tags = html.match(/<(?:script\b[^>]*\bsrc=|link\b[^>]*\brel="(?:stylesheet|modulepreload)")[^>]*>/g) ?? [];
+  expect(tags.length).toBeGreaterThan(0);
+  for (const tag of tags) {
+    expect(tag).toMatch(/\bintegrity="sha384-[A-Za-z0-9+/=]+"/);
+  }
+});

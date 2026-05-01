@@ -6,10 +6,12 @@ import { defineConfig } from "vite";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 
-const crossOriginIsolationHeaders = {
+const securityHeaders = {
   "Cross-Origin-Embedder-Policy": "require-corp",
   "Cross-Origin-Opener-Policy": "same-origin",
   "Cross-Origin-Resource-Policy": "same-origin",
+  "Permissions-Policy":
+    "accelerometer=(), ambient-light-sensor=(), attribution-reporting=(), autoplay=(), battery=(), bluetooth=(), browsing-topics=(), camera=(), clipboard-read=(), clipboard-write=(), compute-pressure=(), display-capture=(), encrypted-media=(), fullscreen=(), gamepad=(), geolocation=(), gyroscope=(), hid=(), idle-detection=(), interest-cohort=(), join-ad-interest-group=(), local-fonts=(), magnetometer=(), microphone=(), midi=(), otp-credentials=(), payment=(), picture-in-picture=(), publickey-credentials-create=(), publickey-credentials-get=(), run-ad-auction=(), screen-wake-lock=(), shared-storage=(), shared-storage-select-url=(), speaker-selection=(), sync-xhr=(), usb=(), web-share=(), window-management=(), xr-spatial-tracking=()",
 };
 
 export default defineConfig({
@@ -21,9 +23,9 @@ export default defineConfig({
   },
   server: {
     port: 5173,
-    headers: crossOriginIsolationHeaders,
+    headers: securityHeaders,
   },
   preview: {
-    headers: crossOriginIsolationHeaders,
+    headers: securityHeaders,
   },
 });

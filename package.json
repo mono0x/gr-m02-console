@@ -11,7 +11,9 @@
     "test:watch": "vitest",
     "test:e2e": "playwright test",
     "lint": "oxlint",
-    "lint:fix": "oxlint --fix"
+    "lint:fix": "oxlint --fix",
+    "format": "oxfmt --write .",
+    "format:check": "oxfmt --check ."
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.15",
@@ -48,6 +50,7 @@
     "@vitejs/plugin-react": "^6.0.1",
     "chrome-devtools-mcp": "^0.23.0",
     "jsdom": "^29.1.0",
+    "oxfmt": "^0.47.0",
     "oxlint": "^1.61.0",
     "tailwindcss": "^4.2.4",
     "typescript": "^6.0.3",

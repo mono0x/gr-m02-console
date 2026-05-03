@@ -1,31 +1,58 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": ["config:recommended"],
+  "extends": [
+    "config:recommended"
+  ],
   "timezone": "Asia/Tokyo",
-  "minimumReleaseAge": "1 days",
+  "minimumReleaseAge": "2 days",
   "osvVulnerabilityAlerts": true,
   "packageRules": [
     {
-      "matchManagers": ["npm"],
-      "matchUpdateTypes": ["minor", "patch"],
+      "matchManagers": [
+        "npm"
+      ],
+      "matchUpdateTypes": [
+        "minor",
+        "patch"
+      ],
       "groupName": "dependencies",
-      "schedule": ["on monday"]
+      "schedule": [
+        "on monday"
+      ]
     },
     {
-      "matchManagers": ["github-actions"],
-      "matchUpdateTypes": ["minor", "patch"],
+      "matchManagers": [
+        "github-actions"
+      ],
+      "matchUpdateTypes": [
+        "minor",
+        "patch"
+      ],
       "groupName": "actions",
-      "schedule": ["on the first day of the month"]
+      "schedule": [
+        "on the first day of the month"
+      ]
     },
     {
-      "matchManagers": ["mise"],
-      "matchUpdateTypes": ["minor", "patch"],
+      "matchManagers": [
+        "mise"
+      ],
+      "matchUpdateTypes": [
+        "minor",
+        "patch"
+      ],
       "groupName": "mise",
-      "schedule": ["on monday"]
+      "schedule": [
+        "on monday"
+      ]
     },
     {
-      "matchPackageNames": ["@types/node"],
-      "matchUpdateTypes": ["major"],
+      "matchPackageNames": [
+        "@types/node"
+      ],
+      "matchUpdateTypes": [
+        "major"
+      ],
       "enabled": false
     }
   ]

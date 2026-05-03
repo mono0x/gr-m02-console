@@ -1,131 +1,132 @@
-import { useState } from "react";
-import { toast } from "sonner";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { buildPairSentence } from "@/pair/encode";
-import { PAIR_CATALOG, PAIR_COMMANDS } from "@/pair/catalog";
-import { sendPairCommand } from "@/pair/runtime";
-import { PairError, type PairCommandSpec } from "@/pair/types";
-import { useConnectionStore } from "@/store/connection-store";
-import { useSettingsStore } from "@/store/settings-store";
-import { CommandArgsForm, defaultArgValues } from "../console/CommandArgsForm";
+import { useState } from "react"
+import { toast } from "sonner"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { buildPairSentence } from "@/pair/encode"
+import { PAIR_CATALOG, PAIR_COMMANDS } from "@/pair/catalog"
+import { sendPairCommand } from "@/pair/runtime"
+import { PairError, type PairCommandSpec } from "@/pair/types"
+import { useConnectionStore } from "@/store/connection-store"
+import { useSettingsStore } from "@/store/settings-store"
+import { CommandArgsForm, defaultArgValues } from "../console/CommandArgsForm"
 
 const REFRESH_TARGETS = PAIR_COMMANDS.filter((c) => c.resultKind === "ack-and-followup")
   .filter((c) => c.cid !== "865") // 865 needs port_index argument; refresh handles UART0 explicitly
   .filter((c) => c.args.length === 0)
-  .map((c) => c.cid);
+  .map((c) => c.cid)
 
-const BAUD_RATE_GET_ARGS = ["0", "0"]; // UART0
-const NMEA_TYPES = ["0", "1", "2", "3", "4", "5", "6"];
+const BAUD_RATE_GET_ARGS = ["0", "0"] // UART0
+const NMEA_TYPES = ["0", "1", "2", "3", "4", "5", "6"]
 
 interface EditTarget {
-  setSpec: PairCommandSpec; // the setter command (e.g. 062)
-  refreshSpec?: PairCommandSpec | undefined; // the corresponding getter (e.g. 063)
-  initialArgs?: string[];
+  setSpec: PairCommandSpec // the setter command (e.g. 062)
+  refreshSpec?: PairCommandSpec | undefined // the corresponding getter (e.g. 063)
+  initialArgs?: string[]
 }
 
 export function SettingsView() {
-  const isConnected = useConnectionStore((s) => s.state === "connected");
-  const values = useSettingsStore((s) => s.values);
-  const [editTarget, setEditTarget] = useState<EditTarget | null>(null);
-  const [editValues, setEditValues] = useState<string[]>([]);
-  const [saving, setSaving] = useState(false);
+  const isConnected = useConnectionStore((s) => s.state === "connected")
+  const values = useSettingsStore((s) => s.values)
+  const [editTarget, setEditTarget] = useState<EditTarget | null>(null)
+  const [editValues, setEditValues] = useState<string[]>([])
+  const [saving, setSaving] = useState(false)
 
   async function refreshAll() {
-    if (!isConnected) return;
+    if (!isConnected) return
     for (const cid of REFRESH_TARGETS) {
-      await fetchValue(cid);
+      await fetchValue(cid)
     }
-    await fetchValue("063", ["-1"]);
+    await fetchValue("063", ["-1"])
     for (const t of NMEA_TYPES) {
-      await fetchValue("063", [t]);
+      await fetchValue("063", [t])
     }
-    await fetchValue("865", BAUD_RATE_GET_ARGS);
+    await fetchValue("865", BAUD_RATE_GET_ARGS)
   }
 
   async function fetchValue(cid: string, args: string[] = []) {
-    const spec = PAIR_CATALOG[cid];
-    if (!spec) return;
-    const key = settingKey(cid, args);
-    useSettingsStore.getState().setLoading(key, true);
+    const spec = PAIR_CATALOG[cid]
+    if (!spec) return
+    const key = settingKey(cid, args)
+    useSettingsStore.getState().setLoading(key, true)
     try {
-      const response = await sendPairCommand({ cid, args });
-      const fields = response.followUp?.fields ?? [];
-      const parsed = spec.parseFollowUp ? spec.parseFollowUp(fields) : { fields };
-      useSettingsStore.getState().setValue(key, fields, parsed);
+      const response = await sendPairCommand({ cid, args })
+      const fields = response.followUp?.fields ?? []
+      const parsed = spec.parseFollowUp ? spec.parseFollowUp(fields) : { fields }
+      useSettingsStore.getState().setValue(key, fields, parsed)
     } catch (err) {
-      const message = err instanceof PairError ? `${err.kind}: ${err.message}` : String(err);
-      useSettingsStore.getState().setError(key, message);
+      const message = err instanceof PairError ? `${err.kind}: ${err.message}` : String(err)
+      useSettingsStore.getState().setError(key, message)
     }
   }
 
   function openEditFor(getCid: string, setCid: string, args: string[] = [], currentArgs: string[] = []) {
-    const setSpec = PAIR_CATALOG[setCid];
-    const refreshSpec = PAIR_CATALOG[getCid];
-    if (!setSpec) return;
+    const setSpec = PAIR_CATALOG[setCid]
+    const refreshSpec = PAIR_CATALOG[getCid]
+    if (!setSpec) return
     setEditTarget({
       setSpec,
       ...(refreshSpec ? { refreshSpec } : {}),
       ...(currentArgs.length > 0 ? { initialArgs: currentArgs } : {}),
-    });
-    setEditValues(currentArgs.length > 0 ? currentArgs : defaultArgValues(setSpec));
-    void args; // not used currently
+    })
+    setEditValues(currentArgs.length > 0 ? currentArgs : defaultArgValues(setSpec))
+    void args // not used currently
   }
 
   async function submitEdit() {
-    if (!editTarget) return;
-    setSaving(true);
+    if (!editTarget) return
+    setSaving(true)
     try {
-      await sendPairCommand({ cid: editTarget.setSpec.cid, args: editValues });
-      toast.success(`PAIR${editTarget.setSpec.cid} 設定しました`);
+      await sendPairCommand({ cid: editTarget.setSpec.cid, args: editValues })
+      toast.success(`PAIR${editTarget.setSpec.cid} 設定しました`)
       if (editTarget.refreshSpec) {
-        await fetchValue(editTarget.refreshSpec.cid);
+        await fetchValue(editTarget.refreshSpec.cid)
       }
-      setEditTarget(null);
+      setEditTarget(null)
     } catch (err) {
-      const message = err instanceof PairError ? `${err.kind}: ${err.message}` : String(err);
-      toast.error("設定に失敗しました", { description: message });
+      const message = err instanceof PairError ? `${err.kind}: ${err.message}` : String(err)
+      toast.error("設定に失敗しました", { description: message })
     } finally {
-      setSaving(false);
+      setSaving(false)
     }
   }
 
   async function saveNvram() {
-    if (!isConnected) return;
+    if (!isConnected) return
     const ok = window.confirm(
       "PAIR003 で GNSS を停止 → PAIR513 で NVRAM へ保存 → PAIR002 で再開 します。続けますか?",
-    );
-    if (!ok) return;
+    )
+    if (!ok) return
 
     try {
-      await sendPairCommand({ cid: "003" });
+      await sendPairCommand({ cid: "003" })
     } catch (err) {
-      const message = err instanceof PairError ? `${err.kind}: ${err.message}` : String(err);
-      toast.error("GNSS 停止に失敗しました", { description: message });
-      return;
+      const message = err instanceof PairError ? `${err.kind}: ${err.message}` : String(err)
+      toast.error("GNSS 停止に失敗しました", { description: message })
+      return
     }
 
-    let saveError: unknown;
+    let saveError: unknown
     try {
-      await sendPairCommand({ cid: "513" });
+      await sendPairCommand({ cid: "513" })
     } catch (err) {
-      saveError = err;
+      saveError = err
     }
 
     try {
-      await sendPairCommand({ cid: "002" });
+      await sendPairCommand({ cid: "002" })
     } catch (err) {
-      const message = err instanceof PairError ? `${err.kind}: ${err.message}` : String(err);
-      toast.error("GNSS 再開に失敗しました", { description: message });
+      const message = err instanceof PairError ? `${err.kind}: ${err.message}` : String(err)
+      toast.error("GNSS 再開に失敗しました", { description: message })
     }
 
     if (saveError) {
-      const message = saveError instanceof PairError ? `${saveError.kind}: ${saveError.message}` : String(saveError);
-      toast.error("NVRAM 保存に失敗しました", { description: message });
+      const message =
+        saveError instanceof PairError ? `${saveError.kind}: ${saveError.message}` : String(saveError)
+      toast.error("NVRAM 保存に失敗しました", { description: message })
     } else {
-      toast.success("NVRAM へ保存しました");
+      toast.success("NVRAM へ保存しました")
     }
   }
 
@@ -146,8 +147,8 @@ export function SettingsView() {
         </CardHeader>
         <CardContent className="space-y-1">
           {SETTINGS_ROWS.map((row) => {
-            const key = settingKey(row.getCid, row.getArgs);
-            const value = values[key];
+            const key = settingKey(row.getCid, row.getArgs)
+            const value = values[key]
             return (
               <SettingRow
                 key={key}
@@ -166,7 +167,7 @@ export function SettingsView() {
                 }
                 editable={isConnected && !!row.setCid}
               />
-            );
+            )
           })}
         </CardContent>
       </Card>
@@ -206,20 +207,20 @@ export function SettingsView() {
         </DialogContent>
       </Dialog>
     </div>
-  );
+  )
 }
 
 function settingKey(cid: string, args: string[]): string {
-  return args.length === 0 ? cid : `${cid}:${args.join(",")}`;
+  return args.length === 0 ? cid : `${cid}:${args.join(",")}`
 }
 
 interface RowDef {
-  label: string;
-  describe: (value: Record<string, unknown> | null) => string;
-  getCid: string;
-  getArgs: string[];
-  setCid?: string;
-  toEditArgs?: (fields: string[]) => string[];
+  label: string
+  describe: (value: Record<string, unknown> | null) => string
+  getCid: string
+  getArgs: string[]
+  setCid?: string
+  toEditArgs?: (fields: string[]) => string[]
 }
 
 const SETTINGS_ROWS: RowDef[] = [
@@ -325,14 +326,16 @@ const SETTINGS_ROWS: RowDef[] = [
     getArgs: ["-1"],
     describe: (v) => (v?.["fields"] ? JSON.stringify(v["fields"]) : "—"),
   },
-  ...NMEA_TYPES.map((t): RowDef => ({
-    label: `NMEA Output Rate · ${nmeaTypeLabel(t)}`,
-    getCid: "063",
-    getArgs: [t],
-    setCid: "062",
-    describe: (v) => (v?.["rate"] !== undefined ? `${v["rate"]} fix(es)` : "—"),
-    toEditArgs: (f) => [f[0] ?? t, f[1] ?? "1"],
-  })),
+  ...NMEA_TYPES.map(
+    (t): RowDef => ({
+      label: `NMEA Output Rate · ${nmeaTypeLabel(t)}`,
+      getCid: "063",
+      getArgs: [t],
+      setCid: "062",
+      describe: (v) => (v?.["rate"] !== undefined ? `${v["rate"]} fix(es)` : "—"),
+      toEditArgs: (f) => [f[0] ?? t, f[1] ?? "1"],
+    }),
+  ),
   {
     label: "Baud Rate (UART0)",
     getCid: "865",
@@ -341,63 +344,61 @@ const SETTINGS_ROWS: RowDef[] = [
     describe: (v) => (v?.["baudRate"] !== undefined ? `${v["baudRate"]} bps` : "—"),
     toEditArgs: (f) => ["0", "0", f[0] ?? "115200"],
   },
-];
+]
 
 function nmeaTypeLabel(t: string): string {
   switch (t) {
     case "0":
-      return "GGA";
+      return "GGA"
     case "1":
-      return "GLL";
+      return "GLL"
     case "2":
-      return "GSA";
+      return "GSA"
     case "3":
-      return "GSV";
+      return "GSV"
     case "4":
-      return "RMC";
+      return "RMC"
     case "5":
-      return "VTG";
+      return "VTG"
     case "6":
-      return "ZDA";
+      return "ZDA"
     default:
-      return t;
+      return t
   }
 }
 
 function describeFlags(v: Record<string, unknown> | null, keys: string[]): string {
-  if (!v) return "—";
-  return keys
-    .map((k) => `${k}:${v[k] === "1" || v[k] === 1 ? "✓" : "—"}`)
-    .join(" ");
+  if (!v) return "—"
+  return keys.map((k) => `${k}:${v[k] === "1" || v[k] === 1 ? "✓" : "—"}`).join(" ")
 }
 
 function describeDatum(d?: string): string {
-  if (d === "0") return "WGS84 (0)";
-  if (d === "1") return "TOKYO-M (1)";
-  if (d === "2") return "TOKYO-A (2)";
-  return d ?? "—";
+  if (d === "0") return "WGS84 (0)"
+  if (d === "1") return "TOKYO-M (1)"
+  if (d === "2") return "TOKYO-A (2)"
+  return d ?? "—"
 }
 
 function describeDgps(m?: string): string {
-  if (m === "0") return "なし (0)";
-  if (m === "1") return "RTCM (1)";
-  if (m === "2") return "SBAS (2)";
-  if (m === "3") return "SLAS (3)";
-  return m ?? "—";
+  if (m === "0") return "なし (0)"
+  if (m === "1") return "RTCM (1)"
+  if (m === "2") return "SBAS (2)"
+  if (m === "3") return "SLAS (3)"
+  return m ?? "—"
 }
 
 interface SettingRowProps {
-  label: string;
-  describe: (value: Record<string, unknown> | null) => string;
-  value?: import("@/store/settings-store").SettingValueState;
-  onRefresh: () => void;
-  onEdit: () => void;
-  editable: boolean;
+  label: string
+  describe: (value: Record<string, unknown> | null) => string
+  value?: import("@/store/settings-store").SettingValueState
+  onRefresh: () => void
+  onEdit: () => void
+  editable: boolean
 }
 
 function SettingRow({ label, describe, value, onRefresh, onEdit, editable }: SettingRowProps) {
-  const text = value ? describe(value.parsed) : "—";
-  const fetchedAt = value?.fetchedAt ? new Date(value.fetchedAt).toLocaleTimeString() : "—";
+  const text = value ? describe(value.parsed) : "—"
+  const fetchedAt = value?.fetchedAt ? new Date(value.fetchedAt).toLocaleTimeString() : "—"
   return (
     <div className="flex items-center justify-between gap-3 border-b py-2 last:border-b-0">
       <div className="min-w-0">
@@ -418,5 +419,5 @@ function SettingRow({ label, describe, value, onRefresh, onEdit, editable }: Set
         )}
       </div>
     </div>
-  );
+  )
 }

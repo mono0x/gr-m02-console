@@ -1,30 +1,24 @@
-import { useShallow } from "zustand/shallow";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { SUPPORTED_BAUD_RATES } from "@/serial/types";
-import { useConnectionStore } from "@/store/connection-store";
+import { useShallow } from "zustand/shallow"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { SUPPORTED_BAUD_RATES } from "@/serial/types"
+import { useConnectionStore } from "@/store/connection-store"
 
 const STATE_LABEL: Record<string, string> = {
   disconnected: "未接続",
   connecting: "接続中…",
   connected: "接続済み",
   error: "エラー",
-};
+}
 
 const STATE_VARIANT: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
   disconnected: "outline",
   connecting: "secondary",
   connected: "default",
   error: "destructive",
-};
+}
 
 export function ConnectionBar() {
   const { state, baudRate, error, isSupported, connect, disconnect, setBaudRate } = useConnectionStore(
@@ -37,10 +31,10 @@ export function ConnectionBar() {
       disconnect: s.disconnect,
       setBaudRate: s.setBaudRate,
     })),
-  );
+  )
 
-  const isConnected = state === "connected";
-  const isBusy = state === "connecting";
+  const isConnected = state === "connected"
+  const isBusy = state === "connecting"
 
   return (
     <div className="flex items-center gap-3 border-b px-4 py-3">
@@ -52,7 +46,7 @@ export function ConnectionBar() {
         <Select
           value={String(baudRate)}
           onValueChange={(value) => {
-            void setBaudRate(Number(value));
+            void setBaudRate(Number(value))
           }}
           disabled={isBusy}
         >
@@ -81,10 +75,8 @@ export function ConnectionBar() {
           接続
         </Button>
       )}
-      {!isSupported && (
-        <span className="text-sm text-destructive">Web Serial API 非対応のブラウザです</span>
-      )}
+      {!isSupported && <span className="text-sm text-destructive">Web Serial API 非対応のブラウザです</span>}
       {error && <span className="text-sm text-destructive">{error}</span>}
     </div>
-  );
+  )
 }

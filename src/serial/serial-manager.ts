@@ -1,204 +1,204 @@
-import type { ConnectionState, LineDirection, LineEvent, SerialPortFactory, SerialPortLike } from "./types";
+import type { ConnectionState, LineDirection, LineEvent, SerialPortFactory, SerialPortLike } from "./types"
 
-const LINE_SPLIT = /\r\n|\n|\r/;
+const LINE_SPLIT = /\r\n|\n|\r/
 
-export type SerialManagerListener = (event: LineEvent) => void;
-export type StateListener = (state: ConnectionState, error?: string | null) => void;
+export type SerialManagerListener = (event: LineEvent) => void
+export type StateListener = (state: ConnectionState, error?: string | null) => void
 
 export interface SerialManagerOptions {
-  factory: SerialPortFactory;
+  factory: SerialPortFactory
 }
 
 export class SerialManager {
-  private factory: SerialPortFactory;
-  private port: SerialPortLike | null = null;
-  private currentBaud: number | null = null;
-  private readerLoop: Promise<void> | null = null;
-  private readAbort: AbortController | null = null;
-  private writer: WritableStreamDefaultWriter<Uint8Array> | null = null;
-  private encoder = new TextEncoder();
-  private lineListeners = new Set<SerialManagerListener>();
-  private stateListeners = new Set<StateListener>();
-  private _state: ConnectionState = "disconnected";
-  private _error: string | null = null;
+  private factory: SerialPortFactory
+  private port: SerialPortLike | null = null
+  private currentBaud: number | null = null
+  private readerLoop: Promise<void> | null = null
+  private readAbort: AbortController | null = null
+  private writer: WritableStreamDefaultWriter<Uint8Array> | null = null
+  private encoder = new TextEncoder()
+  private lineListeners = new Set<SerialManagerListener>()
+  private stateListeners = new Set<StateListener>()
+  private _state: ConnectionState = "disconnected"
+  private _error: string | null = null
 
   constructor(opts: SerialManagerOptions) {
-    this.factory = opts.factory;
+    this.factory = opts.factory
   }
 
   get state(): ConnectionState {
-    return this._state;
+    return this._state
   }
 
   get error(): string | null {
-    return this._error;
+    return this._error
   }
 
   get baudRate(): number | null {
-    return this.currentBaud;
+    return this.currentBaud
   }
 
   isSupported(): boolean {
-    return this.factory.isSupported();
+    return this.factory.isSupported()
   }
 
   onLine(handler: SerialManagerListener): () => void {
-    this.lineListeners.add(handler);
-    return () => this.lineListeners.delete(handler);
+    this.lineListeners.add(handler)
+    return () => this.lineListeners.delete(handler)
   }
 
   onState(handler: StateListener): () => void {
-    this.stateListeners.add(handler);
-    return () => this.stateListeners.delete(handler);
+    this.stateListeners.add(handler)
+    return () => this.stateListeners.delete(handler)
   }
 
   async connect(baudRate: number): Promise<void> {
     if (this._state === "connecting" || this._state === "connected") {
-      throw new Error("Already connected or connecting");
+      throw new Error("Already connected or connecting")
     }
-    this.setState("connecting", null);
+    this.setState("connecting", null)
     try {
-      const port = await this.factory.request();
-      await port.open({ baudRate });
-      this.port = port;
-      this.currentBaud = baudRate;
-      this.startReadLoop();
-      this.attachWriter();
-      this.setState("connected", null);
+      const port = await this.factory.request()
+      await port.open({ baudRate })
+      this.port = port
+      this.currentBaud = baudRate
+      this.startReadLoop()
+      this.attachWriter()
+      this.setState("connected", null)
     } catch (err) {
-      const message = err instanceof Error ? err.message : String(err);
-      this.setState("error", message);
-      await this.cleanupPort();
-      throw err;
+      const message = err instanceof Error ? err.message : String(err)
+      this.setState("error", message)
+      await this.cleanupPort()
+      throw err
     }
   }
 
   async disconnect(): Promise<void> {
-    if (this._state === "disconnected") return;
-    await this.cleanupPort();
-    this.setState("disconnected", null);
+    if (this._state === "disconnected") return
+    await this.cleanupPort()
+    this.setState("disconnected", null)
   }
 
   async setBaudRate(baudRate: number): Promise<void> {
     if (this._state !== "connected") {
-      this.currentBaud = baudRate;
-      return;
+      this.currentBaud = baudRate
+      return
     }
-    await this.cleanupPort();
-    this.setState("connecting", null);
+    await this.cleanupPort()
+    this.setState("connecting", null)
     try {
-      const port = await this.factory.request();
-      await port.open({ baudRate });
-      this.port = port;
-      this.currentBaud = baudRate;
-      this.startReadLoop();
-      this.attachWriter();
-      this.setState("connected", null);
+      const port = await this.factory.request()
+      await port.open({ baudRate })
+      this.port = port
+      this.currentBaud = baudRate
+      this.startReadLoop()
+      this.attachWriter()
+      this.setState("connected", null)
     } catch (err) {
-      const message = err instanceof Error ? err.message : String(err);
-      this.setState("error", message);
-      await this.cleanupPort();
-      throw err;
+      const message = err instanceof Error ? err.message : String(err)
+      this.setState("error", message)
+      await this.cleanupPort()
+      throw err
     }
   }
 
   async write(line: string): Promise<void> {
-    if (!this.writer) throw new Error("Not connected");
-    const text = line.endsWith("\r\n") ? line : `${line}\r\n`;
-    await this.writer.write(this.encoder.encode(text));
-    this.emitLine({ text: text.replace(/\r?\n$/, ""), ts: Date.now(), dir: "tx" });
+    if (!this.writer) throw new Error("Not connected")
+    const text = line.endsWith("\r\n") ? line : `${line}\r\n`
+    await this.writer.write(this.encoder.encode(text))
+    this.emitLine({ text: text.replace(/\r?\n$/, ""), ts: Date.now(), dir: "tx" })
   }
 
   private setState(state: ConnectionState, error: string | null): void {
-    this._state = state;
-    this._error = error;
-    for (const l of this.stateListeners) l(state, error);
+    this._state = state
+    this._error = error
+    for (const l of this.stateListeners) l(state, error)
   }
 
   private emitLine(event: LineEvent): void {
-    for (const l of this.lineListeners) l(event);
+    for (const l of this.lineListeners) l(event)
   }
 
   private attachWriter(): void {
-    if (!this.port?.writable) return;
-    this.writer = this.port.writable.getWriter();
+    if (!this.port?.writable) return
+    this.writer = this.port.writable.getWriter()
   }
 
   private startReadLoop(): void {
-    const port = this.port;
-    if (!port?.readable) return;
-    const abort = new AbortController();
-    this.readAbort = abort;
-    const reader = port.readable.getReader();
+    const port = this.port
+    if (!port?.readable) return
+    const abort = new AbortController()
+    this.readAbort = abort
+    const reader = port.readable.getReader()
     abort.signal.addEventListener("abort", () => {
-      reader.cancel().catch(() => {});
-    });
-    const decoder = new TextDecoder("utf-8", { fatal: false });
-    let buffer = "";
+      reader.cancel().catch(() => {})
+    })
+    const decoder = new TextDecoder("utf-8", { fatal: false })
+    let buffer = ""
     this.readerLoop = (async () => {
       try {
         while (true) {
-          const { value, done } = await reader.read();
-          if (done) break;
-          buffer += decoder.decode(value, { stream: true });
-          const parts = buffer.split(LINE_SPLIT);
-          buffer = parts.pop() ?? "";
-          if (parts.length === 0) continue;
-          const ts = Date.now();
+          const { value, done } = await reader.read()
+          if (done) break
+          buffer += decoder.decode(value, { stream: true })
+          const parts = buffer.split(LINE_SPLIT)
+          buffer = parts.pop() ?? ""
+          if (parts.length === 0) continue
+          const ts = Date.now()
           for (const line of parts) {
-            if (line.length > 0) this.emitLine({ text: line, ts, dir: "rx" });
+            if (line.length > 0) this.emitLine({ text: line, ts, dir: "rx" })
           }
         }
-        const tail = buffer + decoder.decode();
-        if (tail.length > 0) this.emitLine({ text: tail, ts: Date.now(), dir: "rx" });
+        const tail = buffer + decoder.decode()
+        if (tail.length > 0) this.emitLine({ text: tail, ts: Date.now(), dir: "rx" })
       } catch (err) {
         if (!abort.signal.aborted) {
-          const message = err instanceof Error ? err.message : String(err);
-          this.setState("error", message);
+          const message = err instanceof Error ? err.message : String(err)
+          this.setState("error", message)
         }
       } finally {
         try {
-          reader.releaseLock();
+          reader.releaseLock()
         } catch {}
       }
-    })();
+    })()
   }
 
   private async cleanupPort(): Promise<void> {
     if (this.readAbort) {
-      this.readAbort.abort();
-      this.readAbort = null;
+      this.readAbort.abort()
+      this.readAbort = null
     }
     if (this.writer) {
       try {
-        await this.writer.close();
+        await this.writer.close()
       } catch {
         // ignore close errors during teardown
       }
       try {
-        this.writer.releaseLock();
+        this.writer.releaseLock()
       } catch {
         // ignore
       }
-      this.writer = null;
+      this.writer = null
     }
     if (this.readerLoop) {
       try {
-        await this.readerLoop;
+        await this.readerLoop
       } catch {
         // ignore
       }
-      this.readerLoop = null;
+      this.readerLoop = null
     }
     if (this.port) {
       try {
-        await this.port.close();
+        await this.port.close()
       } catch {
         // ignore
       }
-      this.port = null;
+      this.port = null
     }
   }
 }
 
-export type { LineDirection, LineEvent };
+export type { LineDirection, LineEvent }

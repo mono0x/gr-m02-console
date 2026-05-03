@@ -6,23 +6,23 @@ import {
   SelectLabel,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { PAIR_COMMANDS } from "@/pair/catalog";
-import type { PairCategory } from "@/pair/types";
+} from "@/components/ui/select"
+import { PAIR_COMMANDS } from "@/pair/catalog"
+import type { PairCategory } from "@/pair/types"
 
 interface CommandPickerProps {
-  value: string;
-  onChange: (cid: string) => void;
+  value: string
+  onChange: (cid: string) => void
 }
 
-const ORDER: PairCategory[] = ["Restart", "Position", "NMEA", "GNSS", "DGPS", "Storage", "Port"];
+const ORDER: PairCategory[] = ["Restart", "Position", "NMEA", "GNSS", "DGPS", "Storage", "Port"]
 
 export function CommandPicker({ value, onChange }: CommandPickerProps) {
-  const grouped: Partial<Record<PairCategory, typeof PAIR_COMMANDS>> = {};
+  const grouped: Partial<Record<PairCategory, typeof PAIR_COMMANDS>> = {}
   for (const cmd of PAIR_COMMANDS) {
-    const list = grouped[cmd.category] ?? [];
-    list.push(cmd);
-    grouped[cmd.category] = list;
+    const list = grouped[cmd.category] ?? []
+    list.push(cmd)
+    grouped[cmd.category] = list
   }
 
   return (
@@ -32,8 +32,8 @@ export function CommandPicker({ value, onChange }: CommandPickerProps) {
       </SelectTrigger>
       <SelectContent>
         {ORDER.map((cat) => {
-          const list = grouped[cat];
-          if (!list || list.length === 0) return null;
+          const list = grouped[cat]
+          if (!list || list.length === 0) return null
           return (
             <SelectGroup key={cat}>
               <SelectLabel>{cat}</SelectLabel>
@@ -43,9 +43,9 @@ export function CommandPicker({ value, onChange }: CommandPickerProps) {
                 </SelectItem>
               ))}
             </SelectGroup>
-          );
+          )
         })}
       </SelectContent>
     </Select>
-  );
+  )
 }

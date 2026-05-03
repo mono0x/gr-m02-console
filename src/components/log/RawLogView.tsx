@@ -1,42 +1,42 @@
-import { useVirtualizer } from "@tanstack/react-virtual";
-import { useEffect, useRef, useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
-import { useLogStore } from "@/store/log-store";
+import { useVirtualizer } from "@tanstack/react-virtual"
+import { useEffect, useRef, useState } from "react"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Switch } from "@/components/ui/switch"
+import { useLogStore } from "@/store/log-store"
 
-const ROW_HEIGHT = 22;
+const ROW_HEIGHT = 22
 
 export function RawLogView() {
-  const lines = useLogStore((s) => s.lines);
-  const paused = useLogStore((s) => s.paused);
-  const setPaused = useLogStore((s) => s.setPaused);
-  const clear = useLogStore((s) => s.clear);
-  const capacity = useLogStore((s) => s.capacity);
+  const lines = useLogStore((s) => s.lines)
+  const paused = useLogStore((s) => s.paused)
+  const setPaused = useLogStore((s) => s.setPaused)
+  const clear = useLogStore((s) => s.clear)
+  const capacity = useLogStore((s) => s.capacity)
 
-  const parentRef = useRef<HTMLDivElement>(null);
-  const [filter, setFilter] = useState("");
-  const [autoScroll, setAutoScroll] = useState(true);
+  const parentRef = useRef<HTMLDivElement>(null)
+  const [filter, setFilter] = useState("")
+  const [autoScroll, setAutoScroll] = useState(true)
 
   const filtered = filter
     ? lines.filter((line) => line.text.toLowerCase().includes(filter.toLowerCase()))
-    : lines;
+    : lines
 
   const virtualizer = useVirtualizer({
     count: filtered.length,
     getScrollElement: () => parentRef.current,
     estimateSize: () => ROW_HEIGHT,
     overscan: 20,
-  });
+  })
 
   useEffect(() => {
-    if (!autoScroll) return;
-    if (filtered.length === 0) return;
-    virtualizer.scrollToIndex(filtered.length - 1, { align: "end" });
-  }, [filtered.length, autoScroll, virtualizer]);
+    if (!autoScroll) return
+    if (filtered.length === 0) return
+    virtualizer.scrollToIndex(filtered.length - 1, { align: "end" })
+  }, [filtered.length, autoScroll, virtualizer])
 
-  const items = virtualizer.getVirtualItems();
+  const items = virtualizer.getVirtualItems()
 
   return (
     <div className="flex h-[calc(100vh-220px)] flex-col gap-3">
@@ -69,14 +69,11 @@ export function RawLogView() {
           {filtered.length} / {lines.length} (上限 {capacity})
         </span>
       </div>
-      <div
-        ref={parentRef}
-        className="flex-1 overflow-auto rounded-md border bg-card font-mono text-xs"
-      >
+      <div ref={parentRef} className="flex-1 overflow-auto rounded-md border bg-card font-mono text-xs">
         <div style={{ height: virtualizer.getTotalSize(), position: "relative", width: "100%" }}>
           {items.map((item) => {
-            const line = filtered[item.index];
-            if (!line) return null;
+            const line = filtered[item.index]
+            if (!line) return null
             return (
               <div
                 key={line.seq}
@@ -91,19 +88,19 @@ export function RawLogView() {
                 </span>
                 <span className="flex-1">{line.text}</span>
               </div>
-            );
+            )
           })}
         </div>
       </div>
     </div>
-  );
+  )
 }
 
 function formatTs(ts: number): string {
-  const d = new Date(ts);
-  const hh = String(d.getHours()).padStart(2, "0");
-  const mm = String(d.getMinutes()).padStart(2, "0");
-  const ss = String(d.getSeconds()).padStart(2, "0");
-  const ms = String(d.getMilliseconds()).padStart(3, "0");
-  return `${hh}:${mm}:${ss}.${ms}`;
+  const d = new Date(ts)
+  const hh = String(d.getHours()).padStart(2, "0")
+  const mm = String(d.getMinutes()).padStart(2, "0")
+  const ss = String(d.getSeconds()).padStart(2, "0")
+  const ms = String(d.getMilliseconds()).padStart(3, "0")
+  return `${hh}:${mm}:${ss}.${ms}`
 }

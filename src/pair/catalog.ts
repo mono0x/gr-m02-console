@@ -1,4 +1,4 @@
-import type { PairCommandSpec } from "./types";
+import type { PairCommandSpec } from "./types"
 
 const NMEA_TYPE_OPTIONS = [
   { value: "-1", label: "All sentences (-1)" },
@@ -9,7 +9,7 @@ const NMEA_TYPE_OPTIONS = [
   { value: "4", label: "RMC (4)" },
   { value: "5", label: "VTG (5)" },
   { value: "6", label: "ZDA (6)" },
-];
+]
 
 export const PAIR_COMMANDS: PairCommandSpec[] = [
   {
@@ -358,7 +358,10 @@ export const PAIR_COMMANDS: PairCommandSpec[] = [
     category: "Port",
     description: "UART ボーレート設定。再起動後に適用",
     args: [
-      { name: "port_type", kind: { type: "enum", options: [{ value: "0", label: "UART (0)" }], default: "0" } },
+      {
+        name: "port_type",
+        kind: { type: "enum", options: [{ value: "0", label: "UART (0)" }], default: "0" },
+      },
       {
         name: "port_index",
         kind: {
@@ -399,7 +402,10 @@ export const PAIR_COMMANDS: PairCommandSpec[] = [
     category: "Port",
     description: "ボーレートを問合せ",
     args: [
-      { name: "port_type", kind: { type: "enum", options: [{ value: "0", label: "UART (0)" }], default: "0" } },
+      {
+        name: "port_type",
+        kind: { type: "enum", options: [{ value: "0", label: "UART (0)" }], default: "0" },
+      },
       {
         name: "port_index",
         kind: {
@@ -417,15 +423,15 @@ export const PAIR_COMMANDS: PairCommandSpec[] = [
     followUpCid: "865",
     parseFollowUp: (fields) => ({ baudRate: Number(fields[0] ?? 0) }),
   },
-];
+]
 
 export const PAIR_CATALOG: Record<string, PairCommandSpec> = Object.fromEntries(
   PAIR_COMMANDS.map((c) => [c.cid, c]),
-);
+)
 
 function yesNo() {
   return [
     { value: "0", label: "Disabled (0)" },
     { value: "1", label: "Enabled (1)" },
-  ];
+  ]
 }

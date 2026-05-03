@@ -1,7 +1,7 @@
-import { FixCard } from "@/components/status/FixCard";
-import { MotionCard } from "@/components/status/MotionCard";
-import { PositionCard } from "@/components/status/PositionCard";
-import { SatellitesPanel } from "@/components/status/SatellitesPanel";
+import { FixCard } from "@/components/status/FixCard"
+import { MotionCard } from "@/components/status/MotionCard"
+import { PositionCard } from "@/components/status/PositionCard"
+import { SatellitesPanel } from "@/components/status/SatellitesPanel"
 
 export function StatusView() {
   return (
@@ -13,5 +13,5 @@ export function StatusView() {
       </div>
       <SatellitesPanel />
     </div>
-  );
+  )
 }

@@ -1,12 +1,12 @@
-import type { ReactNode } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { cn } from "@/lib/cn";
+import type { ReactNode } from "react"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { cn } from "@/lib/cn"
 
 interface StatusCardProps {
-  title: ReactNode;
-  titleClassName?: string;
-  contentClassName?: string;
-  children: ReactNode;
+  title: ReactNode
+  titleClassName?: string
+  contentClassName?: string
+  children: ReactNode
 }
 
 export function StatusCard({ title, titleClassName, contentClassName, children }: StatusCardProps) {
@@ -17,7 +17,7 @@ export function StatusCard({ title, titleClassName, contentClassName, children }
       </CardHeader>
       <CardContent className={cn("px-4", contentClassName)}>{children}</CardContent>
     </Card>
-  );
+  )
 }
 
 export function StatusRow({ label, value }: { label: string; value: string }) {
@@ -26,5 +26,5 @@ export function StatusRow({ label, value }: { label: string; value: string }) {
       <span className="text-muted-foreground">{label}</span>
       <span className="font-mono">{value}</span>
     </div>
-  );
+  )
 }

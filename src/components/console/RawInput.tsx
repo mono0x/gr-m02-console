@@ -1,19 +1,19 @@
-import { useMemo } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { attachChecksum } from "@/lib/checksum";
+import { useMemo } from "react"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { attachChecksum } from "@/lib/checksum"
 
 interface RawInputProps {
-  value: string;
-  onChange: (value: string) => void;
-  onSend: (sentence: string) => void;
-  disabled?: boolean;
+  value: string
+  onChange: (value: string) => void
+  onSend: (sentence: string) => void
+  disabled?: boolean
 }
 
 export function RawInput({ value, onChange, onSend, disabled }: RawInputProps) {
-  const preview = useMemo(() => buildPreview(value), [value]);
-  const canSend = !disabled && preview !== null;
+  const preview = useMemo(() => buildPreview(value), [value])
+  const canSend = !disabled && preview !== null
   return (
     <div className="grid gap-3">
       <div className="grid gap-1.5">
@@ -34,7 +34,7 @@ export function RawInput({ value, onChange, onSend, disabled }: RawInputProps) {
       </div>
       <Button
         onClick={() => {
-          if (preview) onSend(preview);
+          if (preview) onSend(preview)
         }}
         disabled={!canSend}
         className="w-fit"
@@ -42,15 +42,15 @@ export function RawInput({ value, onChange, onSend, disabled }: RawInputProps) {
         送信
       </Button>
     </div>
-  );
+  )
 }
 
 function buildPreview(input: string): string | null {
-  const trimmed = input.trim();
-  if (trimmed.length === 0) return null;
-  const body = trimmed.startsWith("$") ? trimmed.slice(1) : trimmed;
-  const star = body.indexOf("*");
-  const cleanBody = star >= 0 ? body.slice(0, star) : body;
-  if (cleanBody.length === 0) return null;
-  return attachChecksum(cleanBody);
+  const trimmed = input.trim()
+  if (trimmed.length === 0) return null
+  const body = trimmed.startsWith("$") ? trimmed.slice(1) : trimmed
+  const star = body.indexOf("*")
+  const cleanBody = star >= 0 ? body.slice(0, star) : body
+  if (cleanBody.length === 0) return null
+  return attachChecksum(cleanBody)
 }

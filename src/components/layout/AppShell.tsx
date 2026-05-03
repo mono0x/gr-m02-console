@@ -1,14 +1,14 @@
-import type { ReactNode } from "react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { Toaster } from "@/components/ui/sonner";
-import { ConnectionBar } from "./ConnectionBar";
+import type { ReactNode } from "react"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { TooltipProvider } from "@/components/ui/tooltip"
+import { Toaster } from "@/components/ui/sonner"
+import { ConnectionBar } from "./ConnectionBar"
 
 interface AppShellProps {
-  status: ReactNode;
-  settings: ReactNode;
-  console: ReactNode;
-  log: ReactNode;
+  status: ReactNode
+  settings: ReactNode
+  console: ReactNode
+  log: ReactNode
 }
 
 export function AppShell({ status, settings, console: pairConsole, log }: AppShellProps) {
@@ -42,5 +42,5 @@ export function AppShell({ status, settings, console: pairConsole, log }: AppShe
         <Toaster />
       </div>
     </TooltipProvider>
-  );
+  )
 }

@@ -79,6 +79,12 @@
   }
   body {
     @apply bg-background text-foreground;
-    font-family: system-ui, -apple-system, "Segoe UI", "Hiragino Kaku Gothic ProN", "Noto Sans CJK JP", sans-serif;
+    font-family:
+      system-ui,
+      -apple-system,
+      "Segoe UI",
+      "Hiragino Kaku Gothic ProN",
+      "Noto Sans CJK JP",
+      sans-serif;
   }
 }

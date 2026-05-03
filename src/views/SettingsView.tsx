@@ -1,1 +1,1 @@
-export { SettingsView } from "@/components/settings/SettingsView";
+export { SettingsView } from "@/components/settings/SettingsView"

@@ -6,20 +6,21 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Settings and conventions live in their canonical config files. Read those rather than relying on a copy here.
 
-| Topic                                                                       | Source of truth                      |
-| --------------------------------------------------------------------------- | ------------------------------------ |
-| Project overview, user-facing features                                      | `README.md`                          |
-| Toolchain versions (Node, pnpm)                                             | `mise.toml`                          |
-| Scripts (`dev` / `build` / `test` / `test:e2e` / `lint` …) and dependencies | `package.json`                       |
-| TypeScript strictness flags and `@/*` alias                                 | `tsconfig.app.json`                  |
-| Path-alias plumbing for tooling                                             | `vite.config.ts`, `vitest.config.ts` |
-| pnpm workspace policies (release embargo, allowBuilds)                      | `pnpm-workspace.yaml`                |
-| shadcn/ui style + `cn` import path                                          | `components.json`                    |
-| Lint rules                                                                  | `.oxlintrc.json`                     |
-| Playwright config (`webServer`, base URL)                                   | `playwright.config.ts`               |
-| Device manual (PAIR command spec)                                           | `docs/GR-M02Manual.md`               |
+| Topic                                                              | Source of truth                      |
+| ------------------------------------------------------------------ | ------------------------------------ |
+| Project overview, user-facing features                             | `README.md`                          |
+| Toolchain versions (Node, pnpm)                                    | `mise.toml`                          |
+| Scripts (`dev` / `build` / `test` / `test:e2e` …) and dependencies | `package.json`                       |
+| TypeScript strictness flags and `@/*` alias                        | `tsconfig.app.json`                  |
+| Path-alias plumbing for tooling                                    | `vite.config.ts`, `vitest.config.ts` |
+| pnpm workspace policies (release embargo, allowBuilds)             | `pnpm-workspace.yaml`                |
+| shadcn/ui style + `cn` import path                                 | `components.json`                    |
+| Lint rules                                                         | `.oxlintrc.json`                     |
+| hk steps and hooks (pre-commit / check / fix)                      | `hk.pkl`                             |
+| Playwright config (`webServer`, base URL)                          | `playwright.config.ts`               |
+| Device manual (PAIR command spec)                                  | `docs/GR-M02Manual.md`               |
 
-Use `pnpm` exclusively — never `npm` / `yarn`. Formatting is provided by `oxfmt` (`pnpm run format` / `pnpm run format:check`); the same formatter also runs on save through the `oxc.oxc-vscode` editor extension (see `.vscode/settings.json`). CI runs `format:check` and fails on any diff.
+Use `pnpm` exclusively — never `npm` / `yarn`. Lint (`oxlint`), format (`oxfmt`), and `vitest` are orchestrated by `hk` (`hk.pkl`) — run `hk fix` to auto-fix or `hk check` to verify. `oxfmt` also runs on save through the `oxc.oxc-vscode` editor extension (see `.vscode/settings.json`). CI runs `hk check --all` (then `pnpm build` + `pnpm test:e2e` separately) and fails on any diff.
 
 Run a single Vitest file: `pnpm test src/pair/queue.test.ts`. Run a single Playwright spec: `pnpm exec playwright test e2e/smoke.spec.ts -g "tab name"` (Chromium must be installed via `pnpm exec playwright install chromium`).
 

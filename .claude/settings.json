@@ -1,0 +1,26 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pnpm dev:*)",
+      "Bash(pnpm build:*)",
+      "Bash(pnpm test:*)",
+      "Bash(pnpm test:e2e:*)",
+      "Bash(hk check:*)",
+      "Bash(hk fix:*)",
+      "Bash(hk validate:*)"
+    ]
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "jq -r '.tool_input.file_path' | xargs -I{} hk run post-tool-use {}"
+          }
+        ]
+      }
+    ]
+  }
+}

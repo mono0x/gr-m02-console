@@ -1,0 +1,49 @@
+amends "package://github.com/jdx/hk/releases/download/v1.45.0/hk@1.45.0#/Config.pkl"
+import "package://github.com/jdx/hk/releases/download/v1.45.0/hk@1.45.0#/Builtins.pkl"
+
+local linters = new Mapping<String, Step> {
+  ["oxfmt"] {
+    glob = "**/*.{js,jsx,ts,tsx,json,jsonc,md,yml,yaml}"
+    check = "oxfmt --check {{ files }}"
+    fix = "oxfmt --write {{ files }}"
+  }
+  ["oxlint"] = Builtins.ox_lint
+  ["tsc"] = Builtins.tsc
+  ["pkl"] = Builtins.pkl
+  ["pkl-format"] = Builtins.pkl_format
+}
+
+local checkers = new Mapping<String, Step> {
+  ...linters
+
+  ["test"] {
+    depends = List("oxfmt", "oxlint", "tsc")
+    check = "pnpm run test"
+  }
+
+  ["e2e-test"] {
+    depends = List("oxfmt", "oxlint", "tsc")
+    check = "pnpm run test:e2e"
+  }
+}
+
+exclude = List("pnpm-lock.yaml")
+
+hooks {
+  ["pre-commit"] {
+    fix = true
+    stash = "git"
+    steps = checkers
+  }
+  ["post-tool-use"] {
+    fix = true
+    steps = linters
+  }
+  ["fix"] {
+    fix = true
+    steps = checkers
+  }
+  ["check"] {
+    steps = checkers
+  }
+}

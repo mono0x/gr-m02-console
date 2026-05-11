@@ -1,5 +1,10 @@
 [tools]
+hk = "1.45.0"
 node = "24.15.0"
+pkl = "0.31.1"
 
 [settings]
 idiomatic_version_file_enable_tools = ["pnpm"]
+
+[env]
+_.path = ["./node_modules/.bin"]

@@ -9,6 +9,7 @@ local linters = new Mapping<String, Step> {
   }
   ["oxlint"] = Builtins.ox_lint
   ["tsc"] = Builtins.tsc
+  ["actionlint"] = Builtins.actionlint
   ["pkl"] = Builtins.pkl
   ["pkl-format"] = Builtins.pkl_format
 }

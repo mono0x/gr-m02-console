@@ -61,11 +61,11 @@ function SnrCell({ sat }: { sat: SatelliteInfo }) {
   const heightPercent = snr !== null ? Math.min(100, (snr / 50) * 100) : 0
   const colorClass = !tracked
     ? "bg-muted"
-    : snr! >= 50
+    : snr >= 50
       ? "bg-blue-500"
-      : snr! >= 40
+      : snr >= 40
         ? "bg-emerald-500"
-        : snr! >= 30
+        : snr >= 30
           ? "bg-amber-500"
           : "bg-red-500"
   return (

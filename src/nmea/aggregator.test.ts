@@ -23,10 +23,10 @@ function ingest(agg: GsvAggregator, line: string) {
 describe("GsvAggregator", () => {
   it("emits null until the final message arrives", () => {
     const agg = new GsvAggregator()
-    expect(ingest(agg, lines[0]!)).toBeNull()
-    expect(ingest(agg, lines[1]!)).toBeNull()
-    expect(ingest(agg, lines[2]!)).toBeNull()
-    const result = ingest(agg, lines[3]!)
+    expect(ingest(agg, lines[0])).toBeNull()
+    expect(ingest(agg, lines[1])).toBeNull()
+    expect(ingest(agg, lines[2])).toBeNull()
+    const result = ingest(agg, lines[3])
     expect(result).not.toBeNull()
     expect(result?.talker).toBe("GP")
     expect(result?.satellites.length).toBe(15)
@@ -35,13 +35,13 @@ describe("GsvAggregator", () => {
 
   it("resets when a new messageNumber=1 arrives mid-session", () => {
     const agg = new GsvAggregator()
-    ingest(agg, lines[0]!)
-    ingest(agg, lines[1]!)
+    ingest(agg, lines[0])
+    ingest(agg, lines[1])
     // Restart from msg 1
-    ingest(agg, lines[0]!)
-    ingest(agg, lines[1]!)
-    ingest(agg, lines[2]!)
-    expect(ingest(agg, lines[3]!)).not.toBeNull()
+    ingest(agg, lines[0])
+    ingest(agg, lines[1])
+    ingest(agg, lines[2])
+    expect(ingest(agg, lines[3])).not.toBeNull()
   })
 
   it("keeps independent state per talker", () => {

@@ -91,7 +91,7 @@ export function decodeGGA(fields: string[]): GgaData {
 }
 
 export function decodeRMC(fields: string[]): RmcData {
-  const status = fields[1] === "A" || fields[1] === "V" ? (fields[1] as "A" | "V") : null
+  const status = fields[1] === "A" || fields[1] === "V" ? fields[1] : null
   return {
     utc: parseUtcTime(fields[0] ?? ""),
     status,
@@ -115,7 +115,7 @@ export function decodeVTG(fields: string[]): VtgData {
 }
 
 export function decodeGSA(fields: string[]): GsaData {
-  const mode1 = fields[0] === "M" || fields[0] === "A" ? (fields[0] as "M" | "A") : null
+  const mode1 = fields[0] === "M" || fields[0] === "A" ? fields[0] : null
   const fixModeRaw = fixMode(fields[1])
   const fixType = fixModeRaw === null ? null : (Number(fixModeRaw) as 1 | 2 | 3)
   const satsUsed = fields.slice(2, 14).filter((s) => s.length > 0)
@@ -158,7 +158,7 @@ export function decodeGSV(fields: string[]): GsvData {
 }
 
 export function decodeGLL(fields: string[]): GllData {
-  const status = fields[5] === "A" || fields[5] === "V" ? (fields[5] as "A" | "V") : null
+  const status = fields[5] === "A" || fields[5] === "V" ? fields[5] : null
   return {
     lat: parseDdmm(fields[0] ?? "", fields[1] ?? ""),
     lon: parseDdmm(fields[2] ?? "", fields[3] ?? ""),

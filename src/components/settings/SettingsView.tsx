@@ -56,8 +56,7 @@ export function SettingsView() {
       const parsed = spec.parseFollowUp ? spec.parseFollowUp(fields) : { fields }
       useSettingsStore.getState().setValue(key, fields, parsed)
     } catch (err) {
-      const message = err instanceof PairError ? `${err.kind}: ${err.message}` : String(err)
-      useSettingsStore.getState().setError(key, message)
+      useSettingsStore.getState().setError(key, formatPairError(err))
     }
   }
 
@@ -85,8 +84,7 @@ export function SettingsView() {
       }
       setEditTarget(null)
     } catch (err) {
-      const message = err instanceof PairError ? `${err.kind}: ${err.message}` : String(err)
-      toast.error("設定に失敗しました", { description: message })
+      toast.error("設定に失敗しました", { description: formatPairError(err) })
     } finally {
       setSaving(false)
     }
@@ -102,8 +100,7 @@ export function SettingsView() {
     try {
       await sendPairCommand({ cid: "003" })
     } catch (err) {
-      const message = err instanceof PairError ? `${err.kind}: ${err.message}` : String(err)
-      toast.error("GNSS 停止に失敗しました", { description: message })
+      toast.error("GNSS 停止に失敗しました", { description: formatPairError(err) })
       return
     }
 
@@ -117,14 +114,11 @@ export function SettingsView() {
     try {
       await sendPairCommand({ cid: "002" })
     } catch (err) {
-      const message = err instanceof PairError ? `${err.kind}: ${err.message}` : String(err)
-      toast.error("GNSS 再開に失敗しました", { description: message })
+      toast.error("GNSS 再開に失敗しました", { description: formatPairError(err) })
     }
 
-    if (saveError) {
-      const message =
-        saveError instanceof PairError ? `${saveError.kind}: ${saveError.message}` : String(saveError)
-      toast.error("NVRAM 保存に失敗しました", { description: message })
+    if (saveError !== undefined) {
+      toast.error("NVRAM 保存に失敗しました", { description: formatPairError(saveError) })
     } else {
       toast.success("NVRAM へ保存しました")
     }
@@ -229,7 +223,7 @@ const SETTINGS_ROWS: RowDef[] = [
     getCid: "051",
     getArgs: [],
     setCid: "050",
-    describe: (v) => (v?.["rateMs"] !== undefined ? `${v["rateMs"]} ms` : "—"),
+    describe: (v) => describeNumeric(v?.["rateMs"], (n) => `${n} ms`),
     toEditArgs: (f) => [f[0] ?? ""],
   },
   {
@@ -237,7 +231,7 @@ const SETTINGS_ROWS: RowDef[] = [
     getCid: "059",
     getArgs: [],
     setCid: "058",
-    describe: (v) => (v?.["minSnr"] !== undefined ? `min ${v["minSnr"]}` : "—"),
+    describe: (v) => describeNumeric(v?.["minSnr"], (n) => `min ${n}`),
     toEditArgs: (f) => [f[0] ?? ""],
   },
   {
@@ -245,7 +239,7 @@ const SETTINGS_ROWS: RowDef[] = [
     getCid: "061",
     getArgs: [],
     setCid: "060",
-    describe: (v) => (v?.["drLimit"] !== undefined ? String(v["drLimit"]) : "—"),
+    describe: (v) => describeNumeric(v?.["drLimit"], (n) => String(n)),
     toEditArgs: (f) => [f[0] ?? ""],
   },
   {
@@ -261,7 +255,7 @@ const SETTINGS_ROWS: RowDef[] = [
     getCid: "069",
     getArgs: [],
     setCid: "068",
-    describe: (v) => (v?.["hdop"] !== undefined ? String(v["hdop"]) : "—"),
+    describe: (v) => describeNumeric(v?.["hdop"], (n) => String(n)),
     toEditArgs: (f) => [f[0] ?? ""],
   },
   {
@@ -269,7 +263,7 @@ const SETTINGS_ROWS: RowDef[] = [
     getCid: "071",
     getArgs: [],
     setCid: "070",
-    describe: (v) => (v?.["speedMs"] !== undefined ? `${v["speedMs"]} m/s` : "—"),
+    describe: (v) => describeNumeric(v?.["speedMs"], (n) => `${n} m/s`),
     toEditArgs: (f) => [f[0] ?? ""],
   },
   {
@@ -277,7 +271,7 @@ const SETTINGS_ROWS: RowDef[] = [
     getCid: "073",
     getArgs: [],
     setCid: "072",
-    describe: (v) => (v?.["degrees"] !== undefined ? `${v["degrees"]}°` : "—"),
+    describe: (v) => describeNumeric(v?.["degrees"], (n) => `${n}°`),
     toEditArgs: (f) => [f[0] ?? ""],
   },
   {
@@ -285,7 +279,7 @@ const SETTINGS_ROWS: RowDef[] = [
     getCid: "077",
     getArgs: [],
     setCid: "076",
-    describe: (v) => describeDatum(v?.["datum"] as string | undefined),
+    describe: (v) => describeDatum(v?.["datum"]),
     toEditArgs: (f) => [f[0] ?? "0"],
   },
   {
@@ -301,7 +295,7 @@ const SETTINGS_ROWS: RowDef[] = [
     getCid: "401",
     getArgs: [],
     setCid: "400",
-    describe: (v) => describeDgps(v?.["mode"] as string | undefined),
+    describe: (v) => describeDgps(v?.["mode"]),
     toEditArgs: (f) => [f[0] ?? "0"],
   },
   {
@@ -332,7 +326,7 @@ const SETTINGS_ROWS: RowDef[] = [
       getCid: "063",
       getArgs: [t],
       setCid: "062",
-      describe: (v) => (v?.["rate"] !== undefined ? `${v["rate"]} fix(es)` : "—"),
+      describe: (v) => describeNumeric(v?.["rate"], (n) => `${n} fix(es)`),
       toEditArgs: (f) => [f[0] ?? t, f[1] ?? "1"],
     }),
   ),
@@ -341,7 +335,7 @@ const SETTINGS_ROWS: RowDef[] = [
     getCid: "865",
     getArgs: BAUD_RATE_GET_ARGS,
     setCid: "864",
-    describe: (v) => (v?.["baudRate"] !== undefined ? `${v["baudRate"]} bps` : "—"),
+    describe: (v) => describeNumeric(v?.["baudRate"], (n) => `${n} bps`),
     toEditArgs: (f) => ["0", "0", f[0] ?? "115200"],
   },
 ]
@@ -367,24 +361,34 @@ function nmeaTypeLabel(t: string): string {
   }
 }
 
+function describeNumeric(value: unknown, format: (n: number) => string): string {
+  return typeof value === "number" ? format(value) : "—"
+}
+
+function formatPairError(err: unknown): string {
+  if (err instanceof PairError) return `${err.kind}: ${err.message}`
+  if (err instanceof Error) return err.message
+  return "Unknown error"
+}
+
 function describeFlags(v: Record<string, unknown> | null, keys: string[]): string {
   if (!v) return "—"
   return keys.map((k) => `${k}:${v[k] === "1" || v[k] === 1 ? "✓" : "—"}`).join(" ")
 }
 
-function describeDatum(d?: string): string {
+function describeDatum(d: unknown): string {
   if (d === "0") return "WGS84 (0)"
   if (d === "1") return "TOKYO-M (1)"
   if (d === "2") return "TOKYO-A (2)"
-  return d ?? "—"
+  return typeof d === "string" ? d : "—"
 }
 
-function describeDgps(m?: string): string {
+function describeDgps(m: unknown): string {
   if (m === "0") return "なし (0)"
   if (m === "1") return "RTCM (1)"
   if (m === "2") return "SBAS (2)"
   if (m === "3") return "SLAS (3)"
-  return m ?? "—"
+  return typeof m === "string" ? m : "—"
 }
 
 interface SettingRowProps {

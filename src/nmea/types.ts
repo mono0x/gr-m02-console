@@ -1,6 +1,17 @@
-export type Talker = "GP" | "GL" | "GA" | "GB" | "GN" | "QZ" | "GI" | "BD" | string
+export type Talker = "GP" | "GL" | "GA" | "GB" | "GN" | "QZ" | "GI" | "BD" | (string & {})
 
-export type NmeaType = "GGA" | "GLL" | "GSA" | "GSV" | "RMC" | "VTG" | "ZDA" | "GRS" | "GST" | "GNS" | string
+export type NmeaType =
+  | "GGA"
+  | "GLL"
+  | "GSA"
+  | "GSV"
+  | "RMC"
+  | "VTG"
+  | "ZDA"
+  | "GRS"
+  | "GST"
+  | "GNS"
+  | (string & {})
 
 export type FixQuality = 0 | 1 | 2 | 4 | 5
 export type FixMode = "1" | "2" | "3"

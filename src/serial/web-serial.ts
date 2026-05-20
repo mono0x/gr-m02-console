@@ -9,6 +9,15 @@ export const browserSerialFactory: SerialPortFactory = {
       throw new Error("Web Serial API is not available in this browser.")
     }
     const port = await navigator.serial.requestPort()
-    return port as unknown as SerialPortLike
+    return {
+      open: (opts) => port.open(opts),
+      close: () => port.close(),
+      get readable() {
+        return port.readable
+      },
+      get writable() {
+        return port.writable
+      },
+    }
   },
 }

@@ -2,7 +2,6 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import { parseSentence } from "@/nmea/parser"
 import type { ParsedPair, ParsedPairAck } from "@/nmea/types"
 import { PairQueue } from "./queue"
-import { PairError } from "./types"
 
 function ack(line: string): ParsedPairAck {
   const parsed = parseSentence(line)
@@ -19,17 +18,11 @@ function pair(line: string): ParsedPair {
 interface Harness {
   queue: PairQueue
   transmissions: string[]
-  writeResolve: (() => void) | null
 }
 
 function setup(): Harness {
   const transmissions: string[] = []
-  const harness: Harness = {
-    queue: null as unknown as PairQueue,
-    transmissions,
-    writeResolve: null,
-  }
-  harness.queue = new PairQueue({
+  const queue = new PairQueue({
     write: async (line) => {
       transmissions.push(line)
     },
@@ -37,7 +30,7 @@ function setup(): Harness {
     followUpTimeoutMs: 100,
     maxProcessingExtensions: 3,
   })
-  return harness
+  return { queue, transmissions }
 }
 
 beforeEach(() => {
@@ -87,7 +80,7 @@ describe("PairQueue", () => {
     promise.catch(() => {})
     await vi.advanceTimersByTimeAsync(0)
     await vi.advanceTimersByTimeAsync(250)
-    await expect(promise).rejects.toMatchObject({ kind: "timeout" } as PairError)
+    await expect(promise).rejects.toMatchObject({ kind: "timeout" })
   })
 
   it("rejects on follow-up timeout when ack ok but follow-up missing", async () => {

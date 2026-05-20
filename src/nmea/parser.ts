@@ -1,7 +1,6 @@
 import { computeChecksum } from "@/lib/checksum"
 import { parseDdmm, parseUtcDate, parseUtcTime } from "@/lib/coords"
 import type {
-  FixMode,
   FixQuality,
   GgaData,
   GllData,
@@ -41,11 +40,11 @@ export function parseSentence(rawInput: string): ParsedSentence {
   if (head === "PAIR001") {
     const cid = fields[1] ?? ""
     const resultStr = fields[2] ?? ""
-    const result = Number(resultStr)
-    if (!Number.isFinite(result) || result < 0 || result > 5) {
+    const result = toPairAckCode(Number(resultStr))
+    if (result === null) {
       return { kind: "unknown", raw, reason: "checksum-mismatch" }
     }
-    return { kind: "pair-ack", cid, result: result as PairAckCode, raw }
+    return { kind: "pair-ack", cid, result, raw }
   }
   const pairMatch = PAIR_RE.exec(head)
   if (pairMatch) {
@@ -72,8 +71,15 @@ function fixQuality(value: string | undefined): FixQuality | null {
   return null
 }
 
-function fixMode(value: string | undefined): FixMode | null {
-  if (value === "1" || value === "2" || value === "3") return value
+function parseFixType(value: string | undefined): 1 | 2 | 3 | null {
+  if (value === "1") return 1
+  if (value === "2") return 2
+  if (value === "3") return 3
+  return null
+}
+
+function toPairAckCode(n: number): PairAckCode | null {
+  if (n === 0 || n === 1 || n === 2 || n === 3 || n === 4 || n === 5) return n
   return null
 }
 
@@ -116,8 +122,7 @@ export function decodeVTG(fields: string[]): VtgData {
 
 export function decodeGSA(fields: string[]): GsaData {
   const mode1 = fields[0] === "M" || fields[0] === "A" ? fields[0] : null
-  const fixModeRaw = fixMode(fields[1])
-  const fixType = fixModeRaw === null ? null : (Number(fixModeRaw) as 1 | 2 | 3)
+  const fixType = parseFixType(fields[1])
   const satsUsed = fields.slice(2, 14).filter((s) => s.length > 0)
   return {
     mode1,

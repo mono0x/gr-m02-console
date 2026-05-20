@@ -19,19 +19,19 @@ export class SerialManager {
   private encoder = new TextEncoder()
   private lineListeners = new Set<SerialManagerListener>()
   private stateListeners = new Set<StateListener>()
-  private _state: ConnectionState = "disconnected"
-  private _error: string | null = null
+  private currentState: ConnectionState = "disconnected"
+  private currentError: string | null = null
 
   constructor(opts: SerialManagerOptions) {
     this.factory = opts.factory
   }
 
   get state(): ConnectionState {
-    return this._state
+    return this.currentState
   }
 
   get error(): string | null {
-    return this._error
+    return this.currentError
   }
 
   get baudRate(): number | null {
@@ -53,7 +53,7 @@ export class SerialManager {
   }
 
   async connect(baudRate: number): Promise<void> {
-    if (this._state === "connecting" || this._state === "connected") {
+    if (this.currentState === "connecting" || this.currentState === "connected") {
       throw new Error("Already connected or connecting")
     }
     this.setState("connecting", null)
@@ -74,13 +74,13 @@ export class SerialManager {
   }
 
   async disconnect(): Promise<void> {
-    if (this._state === "disconnected") return
+    if (this.currentState === "disconnected") return
     await this.cleanupPort()
     this.setState("disconnected", null)
   }
 
   async setBaudRate(baudRate: number): Promise<void> {
-    if (this._state !== "connected") {
+    if (this.currentState !== "connected") {
       this.currentBaud = baudRate
       return
     }
@@ -110,8 +110,8 @@ export class SerialManager {
   }
 
   private setState(state: ConnectionState, error: string | null): void {
-    this._state = state
-    this._error = error
+    this.currentState = state
+    this.currentError = error
     for (const l of this.stateListeners) l(state, error)
   }
 

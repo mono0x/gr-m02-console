@@ -1,9 +1,9 @@
-import type { ParsedPair, ParsedPairAck } from "@/nmea/types"
+import type { PairAckCode, ParsedPair, ParsedPairAck } from "@/nmea/types"
 import { buildPairSentence } from "./encode"
 import { type PairErrorKind, PairError, type PairFollowUp, type PairResponse } from "./types"
 
 export interface PairQueueOptions {
-  write(line: string): Promise<void>
+  write: (this: void, line: string) => Promise<void>
   defaultAckTimeoutMs?: number
   followUpTimeoutMs?: number
   maxProcessingExtensions?: number
@@ -29,7 +29,7 @@ interface QueueEntry {
   sentAt: number
   ackTimer?: ReturnType<typeof setTimeout>
   followUpTimer?: ReturnType<typeof setTimeout>
-  ack?: { result: number; raw: string }
+  ack?: { result: PairAckCode; raw: string }
   followUp?: PairFollowUp
   processingExtensions: number
 }
@@ -166,14 +166,14 @@ export class PairQueue {
   private clearAckTimer(entry: QueueEntry): void {
     if (entry.ackTimer !== undefined) {
       clearTimeout(entry.ackTimer)
-      entry.ackTimer = undefined as unknown as ReturnType<typeof setTimeout>
+      delete entry.ackTimer
     }
   }
 
   private clearFollowUpTimer(entry: QueueEntry): void {
     if (entry.followUpTimer !== undefined) {
       clearTimeout(entry.followUpTimer)
-      entry.followUpTimer = undefined as unknown as ReturnType<typeof setTimeout>
+      delete entry.followUpTimer
     }
   }
 
@@ -185,7 +185,7 @@ export class PairQueue {
     this.clearFollowUpTimer(entry)
     const response: PairResponse = {
       cid: entry.cid,
-      ack: { result: entry.ack.result as 0 | 1 | 2 | 3 | 4 | 5, raw: entry.ack.raw },
+      ack: { result: entry.ack.result, raw: entry.ack.raw },
       durationMs: this.now() - entry.sentAt,
       ...(entry.followUp ? { followUp: entry.followUp } : {}),
     }

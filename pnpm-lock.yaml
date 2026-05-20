@@ -100,8 +100,8 @@ importers:
         specifier: ^6.0.1
         version: 6.0.2(vite@8.0.13(@types/node@25.8.0)(esbuild@0.27.3)(jiti@2.7.0))
       chrome-devtools-mcp:
-        specifier: ^0.26.0
-        version: 0.26.0
+        specifier: ^1.0.0
+        version: 1.0.1
       jsdom:
         specifier: ^29.1.0
         version: 29.1.1(@noble/hashes@1.8.0)
@@ -2306,8 +2306,8 @@ packages:
     resolution: {integrity: sha512-7NzBL0rN6fMUW+f7A6Io4h40qQlG+xGmtMxfbnH/K7TAtt8JQWVQK+6g0UXKMeVJoyV5EkkNsErQ8pVD3bLHbA==}
     engines: {node: ^12.17.0 || ^14.13 || >=16.0.0}
 
-  chrome-devtools-mcp@0.26.0:
-    resolution: {integrity: sha512-tSU6E8mmlki9mmfPy3aHlXKkGCcKXVXjAWF4Y/KZIslW7fQy0PalrsUoe8J4FQpEhxbh9vv2TkO08fFLDenMmA==}
+  chrome-devtools-mcp@1.0.1:
+    resolution: {integrity: sha512-h80dfsji5fHKoHce4fESVHHpx0jw18TyULDevLEpEsAFl92oy7DSR2l7gbRjGgRWETrtAENgT+7xotBv+7dkxg==}
     engines: {node: ^20.19.0 || ^22.12.0 || >=23}
     hasBin: true
 
@@ -5820,7 +5820,7 @@ snapshots:
 
   chalk@5.6.2: {}
 
-  chrome-devtools-mcp@0.26.0: {}
+  chrome-devtools-mcp@1.0.1: {}
 
   class-variance-authority@0.7.1:
     dependencies:

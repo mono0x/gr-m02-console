@@ -1,5 +1,5 @@
 import { useVirtualizer } from "@tanstack/react-virtual"
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -19,9 +19,11 @@ export function RawLogView() {
   const [filter, setFilter] = useState("")
   const [autoScroll, setAutoScroll] = useState(true)
 
-  const filtered = filter
-    ? lines.filter((line) => line.text.toLowerCase().includes(filter.toLowerCase()))
-    : lines
+  const filtered = useMemo(() => {
+    if (!filter) return lines
+    const query = filter.toLowerCase()
+    return lines.filter((line) => line.text.toLowerCase().includes(query))
+  }, [lines, filter])
 
   const virtualizer = useVirtualizer({
     count: filtered.length,

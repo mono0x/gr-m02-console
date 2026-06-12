@@ -1,14 +1,31 @@
 import type { PairCommandSpec } from "./types"
 
+export const NMEA_TYPE_LABEL: Record<string, string> = {
+  "0": "GGA",
+  "1": "GLL",
+  "2": "GSA",
+  "3": "GSV",
+  "4": "RMC",
+  "5": "VTG",
+  "6": "ZDA",
+}
+
 const NMEA_TYPE_OPTIONS = [
   { value: "-1", label: "All sentences (-1)" },
-  { value: "0", label: "GGA (0)" },
-  { value: "1", label: "GLL (1)" },
-  { value: "2", label: "GSA (2)" },
-  { value: "3", label: "GSV (3)" },
-  { value: "4", label: "RMC (4)" },
-  { value: "5", label: "VTG (5)" },
-  { value: "6", label: "ZDA (6)" },
+  ...Object.entries(NMEA_TYPE_LABEL).map(([value, label]) => ({ value, label: `${label} (${value})` })),
+]
+
+export const DATUM_OPTIONS = [
+  { value: "0", label: "WGS84 (0)" },
+  { value: "1", label: "TOKYO-M (1)" },
+  { value: "2", label: "TOKYO-A (2)" },
+]
+
+export const DGPS_MODE_OPTIONS = [
+  { value: "0", label: "なし (0)" },
+  { value: "1", label: "RTCM (1)" },
+  { value: "2", label: "SBAS (2)" },
+  { value: "3", label: "SLAS (3)" },
 ]
 
 export const PAIR_COMMANDS: PairCommandSpec[] = [

@@ -5,9 +5,9 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { buildPairSentence } from "@/pair/encode"
-import { PAIR_CATALOG, PAIR_COMMANDS } from "@/pair/catalog"
+import { DATUM_OPTIONS, DGPS_MODE_OPTIONS, NMEA_TYPE_LABEL, PAIR_CATALOG, PAIR_COMMANDS } from "@/pair/catalog"
 import { sendPairCommand } from "@/pair/runtime"
-import { PairError, type PairCommandSpec } from "@/pair/types"
+import { formatPairError, type PairCommandSpec } from "@/pair/types"
 import { useConnectionStore } from "@/store/connection-store"
 import { useSettingsStore } from "@/store/settings-store"
 import { CommandArgsForm, defaultArgValues } from "../console/CommandArgsForm"
@@ -18,7 +18,7 @@ const REFRESH_TARGETS = PAIR_COMMANDS.filter((c) => c.resultKind === "ack-and-fo
   .map((c) => c.cid)
 
 const BAUD_RATE_GET_ARGS = ["0", "0"] // UART0
-const NMEA_TYPES = ["0", "1", "2", "3", "4", "5", "6"]
+const NMEA_TYPES = Object.keys(NMEA_TYPE_LABEL)
 
 interface EditTarget {
   setSpec: PairCommandSpec // the setter command (e.g. 062)
@@ -60,7 +60,7 @@ export function SettingsView() {
     }
   }
 
-  function openEditFor(getCid: string, setCid: string, args: string[] = [], currentArgs: string[] = []) {
+  function openEditFor(getCid: string, setCid: string, currentArgs: string[] = []) {
     const setSpec = PAIR_CATALOG[setCid]
     const refreshSpec = PAIR_CATALOG[getCid]
     if (!setSpec) return
@@ -70,7 +70,6 @@ export function SettingsView() {
       ...(currentArgs.length > 0 ? { initialArgs: currentArgs } : {}),
     })
     setEditValues(currentArgs.length > 0 ? currentArgs : defaultArgValues(setSpec))
-    void args // not used currently
   }
 
   async function submitEdit() {
@@ -152,12 +151,7 @@ export function SettingsView() {
                 onRefresh={() => void fetchValue(row.getCid, row.getArgs)}
                 onEdit={() =>
                   row.setCid &&
-                  openEditFor(
-                    row.getCid,
-                    row.setCid,
-                    row.getArgs,
-                    row.toEditArgs ? row.toEditArgs(value?.fields ?? []) : [],
-                  )
+                  openEditFor(row.getCid, row.setCid, row.toEditArgs ? row.toEditArgs(value?.fields ?? []) : [])
                 }
                 editable={isConnected && !!row.setCid}
               />
@@ -279,7 +273,7 @@ const SETTINGS_ROWS: RowDef[] = [
     getCid: "077",
     getArgs: [],
     setCid: "076",
-    describe: (v) => describeDatum(v?.["datum"]),
+    describe: (v) => describeOption(DATUM_OPTIONS, v?.["datum"]),
     toEditArgs: (f) => [f[0] ?? "0"],
   },
   {
@@ -287,7 +281,7 @@ const SETTINGS_ROWS: RowDef[] = [
     getCid: "093",
     getArgs: [],
     setCid: "092",
-    describe: (v) => (v?.["enabled"] !== undefined ? (v["enabled"] ? "Enabled" : "Disabled") : "—"),
+    describe: describeEnabled,
     toEditArgs: (f) => [f[0] ?? "0"],
   },
   {
@@ -295,7 +289,7 @@ const SETTINGS_ROWS: RowDef[] = [
     getCid: "401",
     getArgs: [],
     setCid: "400",
-    describe: (v) => describeDgps(v?.["mode"]),
+    describe: (v) => describeOption(DGPS_MODE_OPTIONS, v?.["mode"]),
     toEditArgs: (f) => [f[0] ?? "0"],
   },
   {
@@ -303,7 +297,7 @@ const SETTINGS_ROWS: RowDef[] = [
     getCid: "411",
     getArgs: [],
     setCid: "410",
-    describe: (v) => (v?.["enabled"] !== undefined ? (v["enabled"] ? "Enabled" : "Disabled") : "—"),
+    describe: describeEnabled,
     toEditArgs: (f) => [f[0] ?? "0"],
   },
   {
@@ -311,7 +305,7 @@ const SETTINGS_ROWS: RowDef[] = [
     getCid: "421",
     getArgs: [],
     setCid: "420",
-    describe: (v) => (v?.["enabled"] !== undefined ? (v["enabled"] ? "Enabled" : "Disabled") : "—"),
+    describe: describeEnabled,
     toEditArgs: (f) => [f[0] ?? "0"],
   },
   {
@@ -322,7 +316,7 @@ const SETTINGS_ROWS: RowDef[] = [
   },
   ...NMEA_TYPES.map(
     (t): RowDef => ({
-      label: `NMEA Output Rate · ${nmeaTypeLabel(t)}`,
+      label: `NMEA Output Rate · ${NMEA_TYPE_LABEL[t] ?? t}`,
       getCid: "063",
       getArgs: [t],
       setCid: "062",
@@ -340,35 +334,8 @@ const SETTINGS_ROWS: RowDef[] = [
   },
 ]
 
-function nmeaTypeLabel(t: string): string {
-  switch (t) {
-    case "0":
-      return "GGA"
-    case "1":
-      return "GLL"
-    case "2":
-      return "GSA"
-    case "3":
-      return "GSV"
-    case "4":
-      return "RMC"
-    case "5":
-      return "VTG"
-    case "6":
-      return "ZDA"
-    default:
-      return t
-  }
-}
-
 function describeNumeric(value: unknown, format: (n: number) => string): string {
   return typeof value === "number" ? format(value) : "—"
-}
-
-function formatPairError(err: unknown): string {
-  if (err instanceof PairError) return `${err.kind}: ${err.message}`
-  if (err instanceof Error) return err.message
-  return "Unknown error"
 }
 
 function describeFlags(v: Record<string, unknown> | null, keys: string[]): string {
@@ -376,19 +343,15 @@ function describeFlags(v: Record<string, unknown> | null, keys: string[]): strin
   return keys.map((k) => `${k}:${v[k] === "1" || v[k] === 1 ? "✓" : "—"}`).join(" ")
 }
 
-function describeDatum(d: unknown): string {
-  if (d === "0") return "WGS84 (0)"
-  if (d === "1") return "TOKYO-M (1)"
-  if (d === "2") return "TOKYO-A (2)"
-  return typeof d === "string" ? d : "—"
+function describeEnabled(v: Record<string, unknown> | null): string {
+  if (v?.["enabled"] === undefined) return "—"
+  return v["enabled"] ? "Enabled" : "Disabled"
 }
 
-function describeDgps(m: unknown): string {
-  if (m === "0") return "なし (0)"
-  if (m === "1") return "RTCM (1)"
-  if (m === "2") return "SBAS (2)"
-  if (m === "3") return "SLAS (3)"
-  return typeof m === "string" ? m : "—"
+function describeOption(options: { value: string; label: string }[], value: unknown): string {
+  const found = options.find((o) => o.value === value)
+  if (found) return found.label
+  return typeof value === "string" ? value : "—"
 }
 
 interface SettingRowProps {

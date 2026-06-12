@@ -1,6 +1,6 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": ["config:recommended"],
+  "extends": ["config:recommended", "github>mono0x/renovate-config:hk-pkl"],
   "timezone": "Asia/Tokyo",
   "minimumReleaseAge": "2 days",
   "osvVulnerabilityAlerts": true,
@@ -19,6 +19,7 @@
     },
     {
       "matchManagers": ["mise"],
+      "matchPackageNames": ["!hk"],
       "matchUpdateTypes": ["minor", "patch"],
       "groupName": "mise",
       "schedule": ["on monday"]

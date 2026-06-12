@@ -20,6 +20,7 @@ export interface PairCommandSpec {
   parseFollowUp?: (fields: string[]) => Record<string, unknown>
   defaultTimeoutMs?: number
   destructive?: boolean
+  successWarning?: { title: string; description: string }
 }
 
 export interface PairFollowUp {

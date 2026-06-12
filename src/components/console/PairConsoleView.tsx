@@ -40,10 +40,8 @@ export function PairConsoleView() {
     try {
       const response = await sendPairCommand({ cid: spec.cid, args: values })
       toast.success(`PAIR${spec.cid} 成功 (${response.durationMs} ms)`)
-      if (spec.cid === "864") {
-        toast.warning("ボーレートを変更しました", {
-          description: "デバイスは新ボーレートで応答するため、上部から手動で再接続してください。",
-        })
+      if (spec.successWarning) {
+        toast.warning(spec.successWarning.title, { description: spec.successWarning.description })
       }
     } catch (err) {
       toast.error(`PAIR${spec.cid} 失敗`, { description: formatPairError(err) })

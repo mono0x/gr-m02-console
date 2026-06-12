@@ -412,6 +412,10 @@ export const PAIR_COMMANDS: PairCommandSpec[] = [
     ],
     resultKind: "ack-only",
     destructive: true,
+    successWarning: {
+      title: "ボーレートを変更しました",
+      description: "デバイスは新ボーレートで応答するため、上部から手動で再接続してください。",
+    },
   },
   {
     cid: "865",

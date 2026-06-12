@@ -78,6 +78,11 @@ export function SettingsView() {
     try {
       await sendPairCommand({ cid: editTarget.setSpec.cid, args: editValues })
       toast.success(`PAIR${editTarget.setSpec.cid} 設定しました`)
+      if (editTarget.setSpec.successWarning) {
+        toast.warning(editTarget.setSpec.successWarning.title, {
+          description: editTarget.setSpec.successWarning.description,
+        })
+      }
       if (editTarget.refreshSpec) {
         await fetchValue(editTarget.refreshSpec.cid)
       }

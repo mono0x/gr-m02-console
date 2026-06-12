@@ -28,7 +28,3 @@ export function parseUtcDate(value: string): string | null {
   const year = yy >= 80 ? 1900 + yy : 2000 + yy
   return `${year}-${mm}-${dd}`
 }
-
-export function knotsToMps(knots: number): number {
-  return knots * 0.5144444444
-}

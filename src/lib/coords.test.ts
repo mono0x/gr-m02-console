@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest"
-import { knotsToMps, parseDdmm, parseUtcDate, parseUtcTime } from "./coords"
+import { parseDdmm, parseUtcDate, parseUtcTime } from "./coords"
 
 describe("parseDdmm", () => {
   it("parses latitude with N", () => {
@@ -32,11 +32,5 @@ describe("parseUtcDate", () => {
   it("formats ddmmyy with year window", () => {
     expect(parseUtcDate("021222")).toBe("2022-12-02")
     expect(parseUtcDate("010180")).toBe("1980-01-01")
-  })
-})
-
-describe("knotsToMps", () => {
-  it("converts knots to m/s", () => {
-    expect(knotsToMps(1)).toBeCloseTo(0.5144444, 5)
   })
 })

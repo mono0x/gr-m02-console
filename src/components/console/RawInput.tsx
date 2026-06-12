@@ -23,7 +23,7 @@ export function RawInput({ value, onChange, onSend, disabled }: RawInputProps) {
           value={value}
           onChange={(e) => onChange(e.target.value)}
           placeholder="PAIR050,3000"
-          disabled={disabled ?? false}
+          disabled={disabled}
         />
       </div>
       <div className="grid gap-1.5">

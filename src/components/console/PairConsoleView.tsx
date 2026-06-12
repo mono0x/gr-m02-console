@@ -6,7 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { buildPairSentence } from "@/pair/encode"
 import { PAIR_CATALOG, PAIR_COMMANDS } from "@/pair/catalog"
 import { sendPairCommand } from "@/pair/runtime"
-import { PairError } from "@/pair/types"
+import { formatPairError } from "@/pair/types"
 import { useConnectionStore } from "@/store/connection-store"
 import { CommandArgsForm, defaultArgValues } from "./CommandArgsForm"
 import { CommandPicker } from "./CommandPicker"
@@ -46,8 +46,7 @@ export function PairConsoleView() {
         })
       }
     } catch (err) {
-      const message = err instanceof PairError ? `${err.kind}: ${err.message}` : String(err)
-      toast.error(`PAIR${spec.cid} 失敗`, { description: message })
+      toast.error(`PAIR${spec.cid} 失敗`, { description: formatPairError(err) })
     }
   }
 
@@ -69,8 +68,7 @@ export function PairConsoleView() {
       })
       toast.success(`PAIR${enteredCid} 成功 (${response.durationMs} ms)`)
     } catch (err) {
-      const message = err instanceof PairError ? `${err.kind}: ${err.message}` : String(err)
-      toast.error(`PAIR${enteredCid} 失敗`, { description: message })
+      toast.error(`PAIR${enteredCid} 失敗`, { description: formatPairError(err) })
     }
   }
 

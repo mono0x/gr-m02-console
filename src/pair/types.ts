@@ -55,3 +55,9 @@ export class PairError extends Error {
     this.name = "PairError"
   }
 }
+
+export function formatPairError(err: unknown): string {
+  if (err instanceof PairError) return `${err.kind}: ${err.message}`
+  if (err instanceof Error) return err.message
+  return String(err)
+}

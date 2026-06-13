@@ -19,7 +19,7 @@
     },
     {
       "matchManagers": ["mise"],
-      "matchPackageNames": ["!hk"],
+      "matchDepNames": ["!hk"],
       "matchUpdateTypes": ["minor", "patch"],
       "groupName": "mise",
       "schedule": ["on monday"]

@@ -13,13 +13,10 @@ jobs:
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
       - uses: ./.github/actions/setup-mise
-      - uses: SocketDev/action@ba6de6cc0565af1f42295590380973573297e31f # v1.3.2
-        with:
-          mode: firewall-free
       - run: |
-          sfw pnpm install --frozen-lockfile
+          pnpm install --frozen-lockfile
       - run: |
-          sfw pnpm exec playwright install --with-deps chromium
+          pnpm exec playwright install --with-deps chromium
       - run: |
           hk check --all
         env:
@@ -37,11 +34,8 @@ jobs:
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
       - uses: ./.github/actions/setup-mise
-      - uses: SocketDev/action@ba6de6cc0565af1f42295590380973573297e31f # v1.3.2
-        with:
-          mode: firewall-free
       - run: |
-          sfw pnpm install --frozen-lockfile
+          pnpm install --frozen-lockfile
       - run: |
           pnpm run build
       - run: |

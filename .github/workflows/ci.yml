@@ -10,9 +10,15 @@ concurrency:
 jobs:
   test:
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
       - uses: ./.github/actions/setup-mise
+      - uses: flatt-security/setup-takumi-guard-npm@9a5d797c2085b6326d3a2985c08e3a114b9b88c1 # v1.1.1
+        with:
+          bot-id: BT01KVR5JDMX8XDPK0WMZT69JF1P # mono0x
       - run: |
           pnpm install --frozen-lockfile
       - run: |
@@ -31,9 +37,15 @@ jobs:
       - test
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    permissions:
+      id-token: write
+      contents: read
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
       - uses: ./.github/actions/setup-mise
+      - uses: flatt-security/setup-takumi-guard-npm@9a5d797c2085b6326d3a2985c08e3a114b9b88c1 # v1.1.1
+        with:
+          bot-id: BT01KVR5JDMX8XDPK0WMZT69JF1P # mono0x
       - run: |
           pnpm install --frozen-lockfile
       - run: |

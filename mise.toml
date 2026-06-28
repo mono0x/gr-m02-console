@@ -1,7 +1,7 @@
 [tools]
 actionlint = "1.7.12"
 hk = "1.48.0"
-node = "24.17.0"
+node = "24.18.0"
 pkl = "0.31.1"
 
 [settings]

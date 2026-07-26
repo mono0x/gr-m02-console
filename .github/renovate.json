@@ -13,7 +13,7 @@
       "matchManagers": ["npm"],
       "matchUpdateTypes": ["minor", "patch"],
       "groupName": "dependencies",
-      "schedule": ["on monday"]
+      "schedule": ["on the first day of the month"]
     },
     {
       "matchManagers": ["github-actions"],
@@ -25,13 +25,13 @@
       "matchManagers": ["mise"],
       "matchUpdateTypes": ["minor", "patch"],
       "groupName": "mise tools",
-      "schedule": ["on monday"]
+      "schedule": ["on the first day of the month"]
     },
     {
       "matchDepNames": ["hk-pkl"],
       "matchUpdateTypes": ["minor", "patch"],
       "groupName": "mise tools",
-      "schedule": ["on monday"]
+      "schedule": ["on the first day of the month"]
     },
     {
       "matchPackageNames": ["@types/node"],

@@ -45,7 +45,7 @@
     "@types/w3c-web-serial": "^1.0.8",
     "@vitejs/plugin-react": "^6.0.2",
     "chrome-devtools-mcp": "^1.1.0",
-    "jsdom": "^29.1.1",
+    "jsdom": "^30.0.0",
     "oxfmt": "^0.60.0",
     "oxlint": "^1.67.0",
     "oxlint-tsgolint": "^7.0.0",

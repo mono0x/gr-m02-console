@@ -319,16 +319,14 @@ const SETTINGS_ROWS: RowDef[] = [
     getArgs: ["-1"],
     describe: (v) => (v?.["fields"] ? JSON.stringify(v["fields"]) : "—"),
   },
-  ...NMEA_TYPES.map(
-    (t): RowDef => ({
-      label: `NMEA Output Rate · ${NMEA_TYPE_LABEL[t] ?? t}`,
-      getCid: "063",
-      getArgs: [t],
-      setCid: "062",
-      describe: (v) => describeNumeric(v?.["rate"], (n) => `${n} fix(es)`),
-      toEditArgs: (f) => [f[0] ?? t, f[1] ?? "1"],
-    }),
-  ),
+  ...NMEA_TYPES.map((t): RowDef => ({
+    label: `NMEA Output Rate · ${NMEA_TYPE_LABEL[t] ?? t}`,
+    getCid: "063",
+    getArgs: [t],
+    setCid: "062",
+    describe: (v) => describeNumeric(v?.["rate"], (n) => `${n} fix(es)`),
+    toEditArgs: (f) => [f[0] ?? t, f[1] ?? "1"],
+  })),
   {
     label: "Baud Rate (UART0)",
     getCid: "865",

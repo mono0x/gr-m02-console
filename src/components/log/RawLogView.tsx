@@ -25,6 +25,8 @@ export function RawLogView() {
     return lines.filter((line) => line.text.toLowerCase().includes(query))
   }, [lines, filter])
 
+  // React Compiler is not enabled, so useVirtualizer being unmemoizable has no effect here.
+  // oxlint-disable-next-line react/incompatible-library
   const virtualizer = useVirtualizer({
     count: filtered.length,
     getScrollElement: () => parentRef.current,

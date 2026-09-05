@@ -1,41 +1,7 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": ["config:recommended", "github>mono0x/renovate-config:hk-pkl"],
-  "timezone": "Asia/Tokyo",
-  "minimumReleaseAge": "2 days",
-  "osvVulnerabilityAlerts": true,
-  "platformAutomerge": false,
-  "automergeStrategy": "squash",
+  "extends": ["github>mono0x/renovate-config:maintenance"],
   "packageRules": [
-    {
-      "description": "Automerge everything except major updates",
-      "matchUpdateTypes": ["minor", "patch", "digest", "pin", "pinDigest"],
-      "automerge": true
-    },
-    {
-      "matchManagers": ["npm"],
-      "matchUpdateTypes": ["minor", "patch"],
-      "groupName": "dependencies",
-      "schedule": ["on the first day of the month"]
-    },
-    {
-      "matchManagers": ["github-actions"],
-      "matchUpdateTypes": ["minor", "patch"],
-      "groupName": "GitHub Actions",
-      "schedule": ["on the first day of the month"]
-    },
-    {
-      "matchManagers": ["mise"],
-      "matchUpdateTypes": ["minor", "patch"],
-      "groupName": "mise tools",
-      "schedule": ["on the first day of the month"]
-    },
-    {
-      "matchDepNames": ["hk-pkl"],
-      "matchUpdateTypes": ["minor", "patch"],
-      "groupName": "mise tools",
-      "schedule": ["on the first day of the month"]
-    },
     {
       "matchPackageNames": ["@types/node"],
       "matchUpdateTypes": ["major"],

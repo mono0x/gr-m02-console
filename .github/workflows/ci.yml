@@ -28,8 +28,6 @@ jobs:
           pnpm exec playwright install --with-deps chromium
       - run: |
           hk check --all
-        env:
-          HK_PKL_BACKEND: pklr
       - run: |
           pnpm run test
       - run: |

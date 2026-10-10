@@ -10,7 +10,16 @@ local linters = new Mapping<String, Step> {
   }
   ["oxlint"] = Builtins.ox_lint
   ["tsc"] = Builtins.tsc
-  ["actionlint"] = Builtins.actionlint
+  ["jactionlint"] {
+    glob =
+      List(
+        ".github/workflows/*.{yml,yaml}",
+        "**/action.{yml,yaml}",
+        "mise.toml",
+        "hk.pkl",
+      )
+    check = "mise exec -- jactionlint"
+  }
   ["pkl"] = Builtins.pkl
   ["pkl-format"] = Builtins.pkl_format
 }

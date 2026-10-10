@@ -31,6 +31,8 @@ jobs:
         env:
           HK_PKL_BACKEND: pklr
       - run: |
+          pnpm run test
+      - run: |
           pnpm run build
       - run: |
           pnpm run test:e2e

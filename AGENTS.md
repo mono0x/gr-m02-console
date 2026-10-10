@@ -20,7 +20,7 @@ Settings and conventions live in their canonical config files. Read those rather
 | Playwright config (`webServer`, base URL)                          | `playwright.config.ts`               |
 | Device manual (PAIR command spec)                                  | `docs/GR-M02Manual.md`               |
 
-Use `pnpm` exclusively — never `npm` / `yarn`. Lint (`oxlint`), format (`oxfmt`), and `vitest` are orchestrated by `hk` (`hk.pkl`) — run `hk fix` to auto-fix or `hk check` to verify. `oxfmt` also runs on save through the `oxc.oxc-vscode` editor extension (see `.vscode/settings.json`). CI runs `hk check --all` (then `pnpm build` + `pnpm test:e2e` separately) and fails on any diff.
+Use `pnpm` exclusively — never `npm` / `yarn`. Lint (`oxlint`), format (`oxfmt`), and type check (`tsc`) are orchestrated by `hk` (`hk.pkl`) — run `hk fix` to auto-fix or `hk check` to verify. Unit tests are not part of `hk`; run them directly with `pnpm test`. `oxfmt` also runs on save through the `oxc.oxc-vscode` editor extension (see `.vscode/settings.json`). CI runs `hk check --all` (then `pnpm test`, `pnpm build`, and `pnpm test:e2e` separately) and fails on any diff.
 
 Run a single Vitest file: `pnpm test src/pair/queue.test.ts`. Run a single Playwright spec: `pnpm exec playwright test e2e/smoke.spec.ts -g "tab name"` (Chromium must be installed via `pnpm exec playwright install chromium`).
 

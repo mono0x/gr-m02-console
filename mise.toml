@@ -1,5 +1,5 @@
 [tools]
-"github:jdx/jactionlint" = "2.0.2"
+"github:jdx/jactionlint" = "2.2.0"
 hk = "2.4.0"
 node = "24.21.0"
 pkl = "0.32.1"

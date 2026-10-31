@@ -1,6 +1,6 @@
 [tools]
 "github:jdx/jactionlint" = "2.2.0"
-hk = "2.4.0"
+hk = "2.7.0"
 node = "26.13.0"
 pkl = "0.32.1"
 shellcheck = "0.11.0"

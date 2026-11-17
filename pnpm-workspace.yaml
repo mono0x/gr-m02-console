@@ -6,6 +6,9 @@ allowBuilds:
 
 minimumReleaseAgeExclude: []
 
+overrides:
+  "@ts-morph/common@0.27.0>minimatch": "^11.0.1"
+
 trustPolicy: no-downgrade
 trustPolicyExclude:
   - "semver@6.3.1"

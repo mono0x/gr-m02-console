@@ -1,76 +1,71 @@
-# CLAUDE.md
+# AGENTS.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+このリポジトリで作業するエージェント向けの指示。概要・起動方法・検証コマンドは [README.md](README.md) を参照する。
 
-## Where to look first
+## 作業の基本
 
-Settings and conventions live in their canonical config files. Read those rather than relying on a copy here.
+- パッケージ操作には `pnpm` のみを使う。`npm` / `yarn` は使わない。
+- lint・format・型チェックは `hk` で実行する。変更後は `hk check`、ユニットテストは `pnpm test` で別途検証する。
+- UI を変更したら `pnpm build` の後に `pnpm test:e2e` を実行する。Playwright はビルド済みの `dist` を配信する。
+- 自動テストでは実機へ PAIR コマンドを送らない。`src/test/mocks/mock-serial-port.ts` と、`e2e/smoke.spec.ts` のブラウザ内 fake serial を使う。
+- `PAIR864` 成功後もホスト側のボーレートは自動変更せず、toast で手動の再接続を案内する。この挙動を変える場合は、ホスト側の切替に失敗したときの復旧方法も再検討する。
 
-| Topic                                                              | Source of truth                      |
-| ------------------------------------------------------------------ | ------------------------------------ |
-| Project overview, user-facing features                             | `README.md`                          |
-| Toolchain versions (Node, pnpm)                                    | `mise.toml`                          |
-| Scripts (`dev` / `build` / `test` / `test:e2e` …) and dependencies | `package.json`                       |
-| TypeScript strictness flags and `@/*` alias                        | `tsconfig.app.json`                  |
-| Path-alias plumbing for tooling                                    | `vite.config.ts`, `vitest.config.ts` |
-| pnpm workspace policies (release embargo, allowBuilds)             | `pnpm-workspace.yaml`                |
-| shadcn/ui style + `cn` import path                                 | `components.json`                    |
-| Lint rules                                                         | `.oxlintrc.json`                     |
-| hk steps and hooks (pre-commit / check / fix)                      | `hk.pkl`                             |
-| Playwright config (`webServer`, base URL)                          | `playwright.config.ts`               |
-| Device manual (PAIR command spec)                                  | `docs/GR-M02Manual.md`               |
+## 設定の参照先
 
-Use `pnpm` exclusively — never `npm` / `yarn`. Lint (`oxlint`), format (`oxfmt`), and type check (`tsc`) are orchestrated by `hk` (`hk.pkl`) — run `hk fix` to auto-fix or `hk check` to verify. Unit tests are not part of `hk`; run them directly with `pnpm test`. `oxfmt` also runs on save through the `oxc.oxc-vscode` editor extension (see `.vscode/settings.json`). CI runs `hk check --all` (then `pnpm test`, `pnpm build`, and `pnpm test:e2e` separately) and fails on any diff.
+設定値や規約は、次のファイルを正とする。
 
-Run a single Vitest file: `pnpm test src/pair/queue.test.ts`. Run a single Playwright spec: `pnpm exec playwright test e2e/smoke.spec.ts -g "tab name"` (Chromium must be installed via `pnpm exec playwright install chromium`).
+| 確認する内容                            | ファイル                                        |
+| --------------------------------------- | ----------------------------------------------- |
+| 開発ツールのバージョン                  | `mise.toml`、`package.json` の `packageManager` |
+| スクリプト・依存関係                    | `package.json`                                  |
+| TypeScript の strictness・`@/*` alias   | `tsconfig.app.json`                             |
+| ツール側の path alias                   | `vite.config.ts`、`vitest.config.ts`            |
+| pnpm の依存関係ポリシー                 | `pnpm-workspace.yaml`、`.npmrc`                 |
+| shadcn/ui のスタイル・`cn` の import 先 | `components.json`                               |
+| lint・format の設定                     | `.oxlintrc.json`、`.oxfmtrc.json`               |
+| `hk` の検証・自動修正項目               | `hk.pkl`                                        |
+| E2E の webServer・base URL              | `playwright.config.ts`                          |
+| CI の検証順序                           | `.github/workflows/ci.yml`                      |
 
-## Non-obvious gotchas
+エディタでの保存時の format 設定は `.vscode/settings.json` を参照する。
 
-- **`ERR_PNPM_NO_MATURE_MATCHING_VERSION` on install** — caused by the 24 h embargo in `pnpm-workspace.yaml`. Pick the previous patch version.
-- **`exactOptionalPropertyTypes`** — optional properties must be omitted, not set to `undefined`. Use spread guards: `...(value ? { key: value } : {})`.
-- **shadcn CLI writes to a literal `@` directory.** `pnpm exec shadcn add ...` creates `./@/components/ui/` (the `@` is taken literally, not resolved to the alias). Move files into `src/components/ui/` and delete the stray `@` directory.
-- **The shadcn `sonner` template** imports its own type from itself and pulls in `next-themes`; the in-repo copy patches both. Re-running the CLI requires re-applying the patches.
-- **Inline styles** are reserved for dynamically-computed values (virtual list `transform`, SNR bar `height: ${pct}%`). Otherwise go through Tailwind classes and shadcn primitives.
+## データフローと変更箇所
 
-## Architecture
+React の SPA。シリアル入出力を stores に接続する処理は `src/store/pipeline.ts` に集約する。
 
-Single-page React app with four orthogonal layers. Read each entry point before changing the layer.
-
-### Data flow
-
-```
+```text
 Web Serial API
-  → src/serial/serial-manager.ts   // open/close, line stitching, AbortSignal reader cancel
-  → src/store/pipeline.ts          // single subscriber that fans lines out to stores
-      → src/store/log-store.ts     // every line, regardless of validity
-      → src/nmea/parser.ts         // checksum verify + kind dispatch
-          → src/store/nmea-store.ts (+ src/nmea/aggregator.ts for GSV)
-          → src/pair/queue.ts      (ack + follow-up sentences)
+  → src/serial/serial-manager.ts       接続・切断、行の結合、reader のキャンセル
+  → src/store/connection-store.ts     シリアルイベントの公開
+  → src/store/pipeline.ts
+      → src/store/log-store.ts        送受信行の記録
+      → src/nmea/parser.ts            受信行のチェックサム検証・種別判定
+          → src/nmea/aggregator.ts    GSV の集約
+          → src/store/nmea-store.ts   NMEA データの反映（GSV は集約後）
+          → src/pair/queue.ts         ack・後続レスポンスの処理
 ```
 
-`store/pipeline.ts` is the only place that wires serial lines into stores. To add a new sentence type: decoder in `nmea/parser.ts`, ingest in `nmea-store.ts`, switch case in `pipeline.ts` — nothing else needs changing.
+NMEA センテンスを追加するときは、`src/nmea/parser.ts` の decoder、`src/store/nmea-store.ts` の ingest、`src/store/pipeline.ts` の分岐を確認する。関連する型は `src/nmea/types.ts` にある。
 
-### PAIR queue (`src/pair/queue.ts`)
+### PAIR コマンド
 
-The queue is **strictly FIFO with one in-flight command**, because GR-M02U's responses cannot be reliably correlated when multiple commands are in flight. The remaining invariants (ack + follow-up resolution, `result=1` rearm semantics, `PairErrorKind` mapping, `cancelAll` on disconnect) are implemented in `queue.ts` and exercised by `queue.test.ts` — read those.
+- `src/pair/queue.ts` は厳密な FIFO とし、応答待ちのコマンドは同時に一つに保つ。複数を並行送信すると、GR-M02U の応答をコマンドに対応付けられない。
+- ack と後続レスポンス、`result=1` によるタイマーの再設定、`PairErrorKind` の対応は `queue.ts` と `queue.test.ts` を読んでから変更する。切断・接続エラー時の `cancelAll` は `pipeline.ts` が呼び出す。
+- `src/pair/catalog.ts` に Set/Get の対応を定義する。`SettingsView` は Setter 成功後に Getter で設定値を再取得する。
+- 代表コマンドを追加するときは、`resultKind` と `followUpCid` を設定し、マニュアルの該当節を引用して引数の範囲と応答形式を確認する。
 
-`src/pair/catalog.ts` holds Set/Get pairings; `SettingsView` uses them to refresh the Getter after a Setter succeeds. Adding a new representative command means a catalog entry with the right `resultKind` and `followUpCid` — always cite the matching section of `docs/GR-M02Manual.md` to confirm argument ranges and response shape.
+デバイスの仕様書はローカルの `docs/GR-M02Manual.md` を参照する。Markdown と PDF は `docs/.gitignore` の対象で、このリポジトリには同梱されていない。仕様を確認する作業では、ファイルが手元にあるかを先に確認する。
 
-### Stores (Zustand)
+### Store の更新
 
-All four stores in `src/store/` use `subscribeWithSelector`. Two performance-sensitive patterns must be preserved:
+- `nmea-store.ts` の ingest は `shallowDiff` で変更を判定し、同じ値なら以前の参照を再利用する。NMEA の高頻度受信で不要な再描画が起きないよう、フィールド追加時もこの方式を保つ。
+- `log-store.ts` は初期容量 5000 行のバッファ。配列をコピーして行を追加し、超過分を一度の `splice` で除く。行ごとに `Array.shift()` を繰り返す実装に変えない。
 
-- `nmea-store.ts` ingest functions use `shallowDiff` to reuse the prior reference when nothing changed. NMEA arrives at 1–10 Hz; without this, every selector would re-render. Keep this pattern when adding fields.
-- `log-store.ts` is a ring buffer (`capacity` 5000) that overflows via in-place `splice(0, len-cap)`. Do **not** switch to `Array.shift()` per line — it goes O(n²) under 10 Hz GSV bursts.
+## 実装・テストの注意点
 
-## Tests
-
-- The PAIR queue suite uses `vi.useFakeTimers()`. When adding a rejection case, attach `.catch(() => {})` to the pending promise before advancing timers, otherwise Vitest reports an unhandled rejection even if the test asserts it later.
-- Build NMEA test fixtures with `attachChecksum(body)`. Hand-written `*XX` checksums silently mask parser bugs.
-- After UI changes, run `pnpm build` before `pnpm test:e2e` so the Playwright `preview` server serves the latest bundle.
-
-## Real-device handling
-
-Sending PAIR commands to the physical GR-M02U has side effects (reboot, NVRAM rewrite, baud-rate switch). **Never send PAIR commands during automated tests.** Use `src/test/mocks/mock-serial-port.ts` and the in-browser fake serial pattern for E2E.
-
-After `PAIR864` (set baud rate) succeeds, the device immediately starts speaking the new rate. The app intentionally does **not** auto-switch the host-side baud — it surfaces a toast prompting manual reconnect via the connection bar. Do not change this behaviour without re-evaluating the recovery path when the host-side switch fails.
+- `exactOptionalPropertyTypes` の対象では、省略可能なプロパティに `undefined` を代入せず、不要なキーを省く。例: `...(value ? { key: value } : {})`。
+- `shadcn` CLI が `./@/components/ui/` を作成した場合は、生成物を `src/components/ui/` へ移動し、不要になった `@` ディレクトリを除く。
+- shadcn のコンポーネントを再生成するときは、既存ファイルと比較してリポジトリ固有の調整を保つ。`sonner.tsx` の `ToasterProps` は `sonner` から import する。
+- inline style は仮想リストの `transform` や SNR バーの `height` など、動的に計算する値に使う。それ以外は Tailwind のクラスと shadcn のプリミティブを使う。
+- PAIR queue のテストは `vi.useFakeTimers()` を使う。reject を検証するときは、タイマーを進める前に pending promise へ `.catch(() => {})` を付け、未処理の rejection を防ぐ。
+- NMEA テストの fixture は `attachChecksum(body)` で作成する。チェックサムを手書きしない。
